@@ -146,7 +146,7 @@
           tracks: [
             { id: 'kick',  name: '909 KICK',  mode: 'synth',   synthType: 'kick',    scale: [36], pitched: false },
             { id: 'hihat', name: '909 HAT',   mode: 'synth',   synthType: 'hihat',   scale: [60], pitched: false },
-            { id: 'acid',  name: 'ACID 303',  mode: 'synth',   synthType: 'saw',     scale: [-24, -21, -19, -17, -14, -12, -9, -7, -5, 0], pitched: true },
+            { id: 'acid',  name: 'ACID 303',  mode: 'synth',   synthType: 'acid',    scale: [55, 65.41, 73.42, 82.41, 98, 110, 130.81, 146.83, 164.81, 196, 220], pitched: false },
             { id: 'stab',  name: 'RAVE STAB', mode: 'synth',   synthType: 'square',  scale: [-12, -8, -5, 0, 3, 7, 12], pitched: true },
             { id: 'voice', name: 'VOICE/REC', mode: 'sampler', sampleType: 'voice',  scale: [-12, -9, -7, -5, -2, 0, 3, 5, 7, 10, 12], pitched: true }
           ]
@@ -368,6 +368,8 @@
               this.triggerKickSynth(time, radius, p);
             } else if (def.synthType === 'hihat') {
               this.triggerHiHatSynth(time, radius, p);
+            } else if (def.synthType === 'acid') {
+              this.triggerAcid303(tIdx, time, radius, noteVal, p);
             } else {
               this.triggerMelodicSynth(tIdx, time, radius, noteVal, def.synthType, p);
             }
@@ -421,6 +423,42 @@
           gain.connect(this.masterGain);
           src.start(time);
           src.stop(time + dur + 0.01);
+        }
+
+        triggerAcid303(tIdx, time, radius, freq, p) {
+          const stepDur = (60 / bpm) / 4;
+          const decayMult = (p.decay !== undefined) ? (0.5 + p.decay * 1.0) : 1.0;
+          const dur = stepDur * decayMult;
+
+          const osc = this.ctx.createOscillator();
+          osc.type = 'sawtooth';
+          const prevFreq = this.prevFreqs[tIdx] || 110;
+          osc.frequency.setValueAtTime(prevFreq, time);
+          osc.frequency.exponentialRampToValueAtTime(freq, time + Math.min(0.045, stepDur * 0.5));
+          this.prevFreqs[tIdx] = freq;
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          const baseCutoff = 160 + p.cutoff * 3800;
+          filter.frequency.setValueAtTime(Math.min(12000, baseCutoff + radius * 1600), time);
+          filter.frequency.exponentialRampToValueAtTime(Math.max(110, baseCutoff * 0.35), time + stepDur * 0.9);
+          filter.Q.value = 2 + p.reso * 18;
+
+          const shaper = this.ctx.createWaveShaper();
+          shaper.curve = this.makeDistortionCurve(Math.max(0.1, p.drive * 0.85));
+
+          const gain = this.ctx.createGain();
+          gain.gain.setValueAtTime(0.001, time);
+          gain.gain.linearRampToValueAtTime(0.45, time + 0.008);
+          gain.gain.exponentialRampToValueAtTime(0.001, time + dur * 0.95);
+
+          osc.connect(filter);
+          filter.connect(shaper);
+          shaper.connect(gain);
+          gain.connect(this.masterGain);
+
+          osc.start(time);
+          osc.stop(time + dur + 0.02);
         }
 
         triggerMelodicSynth(tIdx, time, radius, semitones, waveType, p) {
