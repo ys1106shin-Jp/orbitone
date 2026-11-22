@@ -89,7 +89,7 @@
     <!-- ジャンル切替タブ -->
     <header class="genre-bar">
       <button class="genre-tab active" data-genre="techno">TECHNO</button>
-      <button class="genre-tab" data-genre="digicore">DIGICORE</button>
+      <button class="genre-tab" data-genre="digicore">HYPERPOP</button>
       <button class="genre-tab" data-genre="botanica">BOTANICA</button>
     </header>
 
@@ -138,6 +138,13 @@
       // =========================================================================
       // 1. GENRE PRESETS (ジャンル別サウンド設計)
       // =========================================================================
+
+      // ★ 初期サンプル設定：track = トラック番号(0〜4)、row = 行番号(0〜3)、url = 音声ファイル
+      // サンプラートラック(mode: 'sampler')だけ指定できる
+      const DEFAULT_SAMPLES = {
+        techno:   [ { track: 4, row: 0, url: 'samples/techno1.mp3' } ],
+        botanica: [ { track: 4, row: 0, url: 'samples/nature1.mp3' } ]
+      };
       const GENRE_PRESETS = {
         techno: {
           name: 'TECHNO',
@@ -146,21 +153,84 @@
           tracks: [
             { id: 'kick',  name: '909 KICK',  mode: 'synth',   synthType: 'kick',    scale: [36], pitched: false },
             { id: 'hihat', name: '909 HAT',   mode: 'synth',   synthType: 'hihat',   scale: [60], pitched: false },
+            { id: 'weird', name: 'WEIRD',     mode: 'synth',   synthType: 'weird',   scale: [0, 3, 7, 10, 12], pitched: false },
             { id: 'acid',  name: 'ACID 303',  mode: 'synth',   synthType: 'acid',    scale: [55, 65.41, 73.42, 82.41, 98, 110, 130.81, 146.83, 164.81, 196, 220], pitched: false },
-            { id: 'stab',  name: 'RAVE STAB', mode: 'synth',   synthType: 'square',  scale: [-12, -8, -5, 0, 3, 7, 12], pitched: true },
             { id: 'voice', name: 'VOICE/REC', mode: 'sampler', sampleType: 'voice',  scale: [-12, -9, -7, -5, -2, 0, 3, 5, 7, 10, 12], pitched: true }
           ]
         },
         digicore: {
-          name: 'DIGICORE',
+          name: 'HYPERPOP',
           bpm: 160,
-          theme: { bg: '#0b0014', main: '#00f0ff', accent: '#ff007f' },
+          theme: { bg: '#ffffff', main: '#00f0ff', accent: '#ff007f' },
           tracks: [
-            { id: 'kick',  name: '808 BASS',  mode: 'synth',   synthType: 'kick',    scale: [36], pitched: false },
-            { id: 'snap',  name: 'GLITCH HAT',mode: 'synth',   synthType: 'hihat',   scale: [60], pitched: false },
-            { id: 'glock', name: 'GLOCKEN',   mode: 'sampler', sampleType: 'mallet', scale: [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24], pitched: true },
-            { id: 'lead',  name: 'CHIP LEAD', mode: 'synth',   synthType: 'saw',     scale: [0, 4, 7, 11, 12, 14, 16, 19, 23], pitched: true },
-            { id: 'voice', name: 'HYPER VOX', mode: 'sampler', sampleType: 'voice',  scale: [0, 2, 4, 7, 9, 12, 14, 16], pitched: true }
+            { id: 'kick', name: 'HYPER KICK', mode: 'synth', synthType: 'kick', scale: [36], pitched: false },
+            // ─────────── 1: DIRTY BASS（歪んだベース）───────────
+            { id: 'bass', name: 'DIRTY BASS', mode: 'synth', synthType: 'patch', pitched: true,
+              scale: [-24, -22, -20, -17, -15, -12, -10, -8],
+              // ① 基本
+              volume: 0.55, pan: 0, mono: false, speed: 1,
+              // ② 音源
+              osc1Wave: 'sawtooth', osc1Level: 0.5, osc1Octave: 0,  osc1Detune: 0,
+              osc2Wave: 'square',   osc2Level: 0.5, osc2Octave: -1, osc2Detune: 8,
+              noiseLevel: 0, unison: 1, unisonDetune: 0, unisonSpread: 0, chord: [0], octaveOffset: 0,
+              // ③ ピッチの動き
+              fixedFreq: 0, glide: 0.03, pitchStart: 0, pitchStartTime: 0, pitchEnd: 0, pitchEndTime: 0, fade: 0,
+              // ④ FM
+              fmRatio: 0, fmWave: 'sine', fmDepth: 0, fmDepthEnd: 0, fmDecay: 1, fmCutoffLink: 0,
+              // ⑤ LFO
+              lfoTarget: 'none', lfoWave: 'sine', lfoRate: 5, lfoDepth: 0,
+              // ⑥ フィルター
+              filterType: 'lowpass', cutoff: 300, cutoffRange: 3000, radiusCutoff: 1500, q: 3, qRange: 18,
+              filterEnv: true, filterEnvDrop: 0.5, filterEnvTime: 0.85, filterMin: 60,
+              // ⑦ 音量の形・長さ
+              attack: 0.004, decayTime: 0.1, sustain: 0.7, release: 0.05, lengthScale: 10, lengthMin: 0.5,
+              // ⑧ 歪み
+              drive: 0.6, driveRange: 1 },
+ 
+            // ─────────── 2: SQUARE PLUCK（スクエアプラック）───────────
+            { id: 'pluck', name: 'SQUARE PLUCK', mode: 'synth', synthType: 'patch', pitched: true,
+              scale: [0, 2, 4, 7, 9, 12, 14, 16, 19, 21],
+              volume: 0.5, pan: 0, mono: false, speed: 1,
+              osc1Wave: 'square', osc1Level: 1, osc1Octave: 0, osc1Detune: 0,
+              osc2Wave: 'none',   osc2Level: 1, osc2Octave: 0, osc2Detune: 0,
+              noiseLevel: 0, unison: 1, unisonDetune: 0, unisonSpread: 0, chord: [0], octaveOffset: 12,
+              fixedFreq: 0, glide: 0.0375, pitchStart: 0, pitchStartTime: 0, pitchEnd: 0, pitchEndTime: 0, fade: 0,
+              fmRatio: 0, fmWave: 'sine', fmDepth: 0, fmDepthEnd: 0, fmDecay: 1, fmCutoffLink: 0,
+              lfoTarget: 'none', lfoWave: 'sine', lfoRate: 5, lfoDepth: 0,
+              filterType: 'lowpass', cutoff: 600, cutoffRange: 6000, radiusCutoff: 0, q: 2, qRange: 10,
+              filterEnv: false, filterEnvDrop: 0.1, filterEnvTime: 0.85, filterMin: 60,
+              attack: 0.002, decayTime: 0, sustain: 0, release: 0.01, lengthScale: 5, lengthMin: 0.5,glide: 0,
+              drive: 0, driveRange: 1 },
+ 
+            // ─────────── 3: GLIDE LEAD（グライドスクエアリード）───────────
+            { id: 'lead', name: 'GLIDE LEAD', mode: 'synth', synthType: 'patch', pitched: true,
+              scale: [-12, -10, -8, -5, -3, 0, 2, 4, 7],
+              volume: 0.5, pan: 0, mono: true, speed: 0.5,
+              osc1Wave: 'square', osc1Level: 0.5, osc1Octave: 0, osc1Detune: 0,
+              osc2Wave: 'square', osc2Level: 0.5, osc2Octave: 0, osc2Detune: 10,
+              noiseLevel: 0, unison: 1, unisonDetune: 0, unisonSpread: 0, chord: [0], octaveOffset: 12,
+              fixedFreq: 0, glide: 0.09, pitchStart: 0, pitchStartTime: 0, pitchEnd: 0, pitchEndTime: 0, fade: 0,
+              fmRatio: 0, fmWave: 'sine', fmDepth: 0, fmDepthEnd: 0, fmDecay: 1, fmCutoffLink: 0,
+              lfoTarget: 'none', lfoWave: 'sine', lfoRate: 5, lfoDepth: 0,
+              filterType: 'lowpass', cutoff: 1500, cutoffRange: 6000, radiusCutoff: 1500, q: 2, qRange: 18,
+              filterEnv: true, filterEnvDrop: 0.5, filterEnvTime: 0.85, filterMin: 60,
+              attack: 0.01, decayTime: 0.15, sustain: 0.8, release: 0.08, lengthScale: 12, lengthMin: 0.5,
+              drive: 0.1, driveRange: 1 },
+ 
+            // ─────────── 4: KAWAII CHORD（スーパーソー。和音は同じ位置に複数の音を置いて作る）───────────
+            { id: 'chord', name: 'KAWAII CHORD', mode: 'synth', synthType: 'patch', pitched: true,
+              scale: [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19],
+              volume: 0.3, pan: 0, mono: true, monoFade: 0.1, speed: 0.25,
+              osc1Wave: 'sawtooth', osc1Level: 0.6, osc1Octave: 0, osc1Detune: 0,
+              osc2Wave: 'none',     osc2Level: 1,   osc2Octave: 0, osc2Detune: 0,
+              noiseLevel: 0, unison: 3, unisonDetune: 14, unisonSpread: 0.7, octaveOffset: 0,
+              fixedFreq: 0, glide: 0, pitchStart: -18, pitchStartTime: 0.1, pitchEnd: -18, pitchEndTime: 0.1, fade: 0.1,
+              fmRatio: 0, fmWave: 'sine', fmDepth: 0, fmDepthEnd: 0, fmDecay: 1, fmCutoffLink: 0,
+              lfoTarget: 'none', lfoWave: 'sine', lfoRate: 5, lfoDepth: 0,
+              filterType: 'lowpass', cutoff: 1200, cutoffRange: 9000, radiusCutoff: 0, q: 0.7, qRange: 5,
+              filterEnv: true, filterEnvDrop: 0.5, filterEnvTime: 1, filterMin: 400,
+              attack: 0.1, decayTime: 0, sustain: 1, release: 0.1, lengthScale: 12, lengthMin: 0.5, lengthSteps: 16,
+              drive: 0, driveRange: 0.7 }
           ]
         },
         botanica: {
@@ -193,6 +263,7 @@
       let currentStep = 0;
       let nextNoteTime = 0;
       let lastScheduledBarStart = 0;
+      let barCounter = -1;
       let schedulerTimer = null;
 
       let mediaStream = null;
@@ -224,10 +295,659 @@
       );
 
       // =========================================================================
+      // 1b. COMMON SYNTH PARAMETER MODEL
+      // データのみ。既存の再生経路、プリセット、音声エンジンには未接続。
+      // outputGain は入力項目ではなく createCommonSynthParams() の派生値。
+      // =========================================================================
+      const COMMON_SYNTH_WAVES = Object.freeze(['sine', 'square', 'sawtooth', 'triangle']);
+      const COMMON_SYNTH_SAFE_PEAK = 0.3;
+      const COMMON_SYNTH_KEYS = Object.freeze([
+        'name', 'mode', 'scale', 'speed', 'volume', 'pan', 'mono', 'octaveOffset',
+        'osc1Wave', 'osc1Level', 'osc1Octave', 'osc2Wave', 'osc2Level', 'osc2Octave', 'osc2Detune',
+        'noiseLevel', 'unison', 'unisonDetune', 'unisonSpread', 'chord',
+        'fmEnabled', 'fmWave', 'fmRatio', 'fmIndex', 'fmLevel', 'fmAttack', 'fmDecay', 'fmSustain', 'fmRelease',
+        'fixedFreq', 'glide', 'pitchStart', 'pitchStartTime', 'pitchEnd', 'pitchEndTime',
+        'lfoTarget', 'lfoWave', 'lfoRate', 'lfoDepth',
+        'filterType', 'cutoff', 'cutoffRange', 'radiusCutoff', 'q', 'qRange', 'filterEnv', 'filterEnvDrop',
+        'attack', 'decayTime', 'sustain', 'release', 'lengthScale', 'lengthMin',
+        'drive', 'driveRange', 'sample', 'pitched'
+      ]);
+      const COMMON_SYNTH_DEFAULTS = Object.freeze({
+        name: 'untitled',
+        mode: 'synth',
+        scale: Object.freeze([0]),
+        speed: 1,
+        volume: 0.5,
+        pan: 0,
+        mono: false,
+        octaveOffset: 0,
+        osc1Wave: 'sawtooth',
+        osc1Level: 1,
+        osc1Octave: 0,
+        osc2Wave: 'sawtooth',
+        osc2Level: 0,
+        osc2Octave: 0,
+        osc2Detune: 0,
+        noiseLevel: 0,
+        unison: 1,
+        unisonDetune: 0,
+        unisonSpread: 0,
+        chord: Object.freeze([]),
+        fmEnabled: false,
+        fmWave: 'sine',
+        fmRatio: 1,
+        fmIndex: 0,
+        fmLevel: 0,
+        fmAttack: 0.01,
+        fmDecay: 0.2,
+        fmSustain: 0.3,
+        fmRelease: 0.1,
+        fixedFreq: null,
+        glide: 0,
+        pitchStart: 0,
+        pitchStartTime: 0.01,
+        pitchEnd: 0,
+        pitchEndTime: 0.05,
+        lfoTarget: 'none',
+        lfoWave: 'sine',
+        lfoRate: 5,
+        lfoDepth: 0,
+        filterType: 'lowpass',
+        cutoff: 2000,
+        cutoffRange: 0,
+        radiusCutoff: 0,
+        q: 0.7,
+        qRange: 0,
+        filterEnv: false,
+        filterEnvDrop: 0.5,
+        attack: 0.01,
+        decayTime: 0.12,
+        sustain: 0.7,
+        release: 0.08,
+        lengthScale: 1,
+        lengthMin: 0.05,
+        drive: 0,
+        driveRange: 0,
+        sample: null,
+        pitched: true
+      });
+      const COMMON_SYNTH_ENUM_FIELDS = Object.freeze([
+        Object.freeze({ key: 'mode', allowed: Object.freeze(['synth', 'sampler']) }),
+        Object.freeze({ key: 'osc1Wave', allowed: COMMON_SYNTH_WAVES }),
+        Object.freeze({ key: 'osc2Wave', allowed: COMMON_SYNTH_WAVES }),
+        Object.freeze({ key: 'fmWave', allowed: COMMON_SYNTH_WAVES }),
+        Object.freeze({ key: 'lfoWave', allowed: COMMON_SYNTH_WAVES }),
+        Object.freeze({ key: 'lfoTarget', allowed: Object.freeze(['none', 'pitch', 'cutoff', 'amp', 'fm']) }),
+        Object.freeze({ key: 'filterType', allowed: Object.freeze(['lowpass', 'highpass', 'bandpass', 'notch', 'none']) })
+      ]);
+      const COMMON_SYNTH_NUMBER_FIELDS = Object.freeze([
+        Object.freeze({ key: 'speed', min: 0.0625, max: 1, integer: false }),
+        Object.freeze({ key: 'volume', min: 0, max: 0.8, integer: false }),
+        Object.freeze({ key: 'pan', min: -1, max: 1, integer: false }),
+        Object.freeze({ key: 'octaveOffset', min: -48, max: 48, integer: false }),
+        Object.freeze({ key: 'osc1Level', min: 0, max: 1, integer: false }),
+        Object.freeze({ key: 'osc1Octave', min: -4, max: 4, integer: true }),
+        Object.freeze({ key: 'osc2Level', min: 0, max: 1, integer: false }),
+        Object.freeze({ key: 'osc2Octave', min: -4, max: 4, integer: true }),
+        Object.freeze({ key: 'osc2Detune', min: -100, max: 100, integer: false }),
+        Object.freeze({ key: 'noiseLevel', min: 0, max: 1, integer: false }),
+        Object.freeze({ key: 'unison', min: 1, max: 7, integer: true }),
+        Object.freeze({ key: 'unisonDetune', min: 0, max: 50, integer: false }),
+        Object.freeze({ key: 'unisonSpread', min: 0, max: 1, integer: false }),
+        Object.freeze({ key: 'fmRatio', min: 0.125, max: 16, integer: false }),
+        Object.freeze({ key: 'fmIndex', min: 0, max: 12, integer: false }),
+        Object.freeze({ key: 'fmLevel', min: 0, max: 1, integer: false }),
+        Object.freeze({ key: 'fmAttack', min: 0, max: 4, integer: false }),
+        Object.freeze({ key: 'fmDecay', min: 0, max: 4, integer: false }),
+        Object.freeze({ key: 'fmSustain', min: 0, max: 1, integer: false }),
+        Object.freeze({ key: 'fmRelease', min: 0, max: 4, integer: false }),
+        Object.freeze({ key: 'glide', min: 0, max: 2, integer: false }),
+        Object.freeze({ key: 'pitchStart', min: -24, max: 24, integer: false }),
+        Object.freeze({ key: 'pitchStartTime', min: 0.001, max: 2, integer: false }),
+        Object.freeze({ key: 'pitchEnd', min: -24, max: 24, integer: false }),
+        Object.freeze({ key: 'pitchEndTime', min: 0.001, max: 2, integer: false }),
+        Object.freeze({ key: 'lfoRate', min: 0, max: 40, integer: false }),
+        Object.freeze({ key: 'lfoDepth', min: 0, max: 1, integer: false }),
+        Object.freeze({ key: 'cutoff', min: 20, max: 18000, integer: false }),
+        Object.freeze({ key: 'cutoffRange', min: 0, max: 18000, integer: false }),
+        Object.freeze({ key: 'radiusCutoff', min: 0, max: 8000, integer: false }),
+        Object.freeze({ key: 'q', min: 0.0001, max: 20, integer: false }),
+        Object.freeze({ key: 'qRange', min: 0, max: 20, integer: false }),
+        Object.freeze({ key: 'filterEnvDrop', min: 0.05, max: 1, integer: false }),
+        Object.freeze({ key: 'attack', min: 0, max: 4, integer: false }),
+        Object.freeze({ key: 'decayTime', min: 0, max: 4, integer: false }),
+        Object.freeze({ key: 'sustain', min: 0, max: 1, integer: false }),
+        Object.freeze({ key: 'release', min: 0, max: 4, integer: false }),
+        Object.freeze({ key: 'lengthScale', min: 0.1, max: 16, integer: false }),
+        Object.freeze({ key: 'lengthMin', min: 0.02, max: 4, integer: false }),
+        Object.freeze({ key: 'drive', min: 0, max: 0.9, integer: false }),
+        Object.freeze({ key: 'driveRange', min: 0, max: 0.9, integer: false })
+      ]);
+      const COMMON_SYNTH_BOOL_FIELDS = Object.freeze(['mono', 'fmEnabled', 'filterEnv', 'pitched']);
+      const COMMON_SYNTH_ARRAY_FIELDS = Object.freeze({
+        scale: Object.freeze({ minLen: 1, maxLen: 32, min: -72, max: 72, elementFallback: 0 }),
+        chord: Object.freeze({ minLen: 0, maxLen: 8, min: -36, max: 36, elementFallback: 0 })
+      });
+      const COMMON_SYNTH_VOICES = Object.create(null);
+
+      function commonSynthOwn(src, key) {
+        if (!src || !Object.prototype.hasOwnProperty.call(src, key)) return undefined;
+        return src[key];
+      }
+
+      function commonSynthPlainObject(input) {
+        if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
+        return input;
+      }
+
+      function sanitizeCommonSynthNumber(value, field, fallback) {
+        if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
+        let n = field.integer ? Math.round(value) : value;
+        if (n < field.min) n = field.min;
+        if (n > field.max) n = field.max;
+        return n;
+      }
+
+      function sanitizeCommonSynthFixedFreq(value) {
+        if (value === null || value === undefined) return null;
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          if (value < 20) return 20;
+          if (value > 8000) return 8000;
+          return value;
+        }
+        return null;
+      }
+
+      function sanitizeCommonSynthNumberArray(value, limit) {
+        if (!Array.isArray(value)) {
+          const blank = [];
+          while (blank.length < limit.minLen) blank.push(limit.elementFallback);
+          return blank;
+        }
+        const next = [];
+        const count = Math.min(value.length, limit.maxLen);
+        for (let i = 0; i < count; i++) {
+          const el = value[i];
+          if (typeof el === 'number' && Number.isFinite(el)) {
+            let n = el;
+            if (n < limit.min) n = limit.min;
+            if (n > limit.max) n = limit.max;
+            next.push(n);
+          } else {
+            next.push(limit.elementFallback);
+          }
+        }
+        while (next.length < limit.minLen) next.push(limit.elementFallback);
+        return next;
+      }
+
+      function deriveCommonSynthOutputGain(params) {
+        const levels = params.osc1Level + params.osc2Level + params.noiseLevel;
+        const noteCount = Math.max(params.chord.length + 1, 1);
+        const estimated = levels * params.unison * noteCount;
+        const volume = params.volume;
+        if (!(estimated > 0) || !(volume > 0)) return volume;
+        if (estimated * volume > COMMON_SYNTH_SAFE_PEAK) return COMMON_SYNTH_SAFE_PEAK / estimated;
+        return volume;
+      }
+
+      function createCommonSynthParams(input) {
+        const src = commonSynthPlainObject(input);
+        const out = {};
+        const name = commonSynthOwn(src, 'name');
+        out.name = (typeof name === 'string' && name.length > 0) ? name : COMMON_SYNTH_DEFAULTS.name;
+        for (let i = 0; i < COMMON_SYNTH_ENUM_FIELDS.length; i++) {
+          const field = COMMON_SYNTH_ENUM_FIELDS[i];
+          const value = commonSynthOwn(src, field.key);
+          out[field.key] = field.allowed.indexOf(value) !== -1 ? value : COMMON_SYNTH_DEFAULTS[field.key];
+        }
+        for (let i = 0; i < COMMON_SYNTH_NUMBER_FIELDS.length; i++) {
+          const field = COMMON_SYNTH_NUMBER_FIELDS[i];
+          out[field.key] = sanitizeCommonSynthNumber(
+            commonSynthOwn(src, field.key),
+            field,
+            COMMON_SYNTH_DEFAULTS[field.key]
+          );
+        }
+        for (let i = 0; i < COMMON_SYNTH_BOOL_FIELDS.length; i++) {
+          const key = COMMON_SYNTH_BOOL_FIELDS[i];
+          const value = commonSynthOwn(src, key);
+          out[key] = typeof value === 'boolean' ? value : COMMON_SYNTH_DEFAULTS[key];
+        }
+        const sample = commonSynthOwn(src, 'sample');
+        out.sample = typeof sample === 'string' ? sample : null;
+        out.fixedFreq = sanitizeCommonSynthFixedFreq(commonSynthOwn(src, 'fixedFreq'));
+        out.scale = sanitizeCommonSynthNumberArray(commonSynthOwn(src, 'scale'), COMMON_SYNTH_ARRAY_FIELDS.scale);
+        out.chord = sanitizeCommonSynthNumberArray(commonSynthOwn(src, 'chord'), COMMON_SYNTH_ARRAY_FIELDS.chord);
+        out.outputGain = deriveCommonSynthOutputGain(out);
+        return out;
+      }
+
+      function pushCommonSynthNumberIssue(invalid, key, value, field) {
+        if (typeof value !== 'number' || !Number.isFinite(value)) {
+          invalid.push({ key: key, reason: '数値が必要' });
+          return;
+        }
+        if (field.integer && Math.round(value) !== value) {
+          invalid.push({ key: key, reason: '整数が必要' });
+          return;
+        }
+        if (value < field.min || value > field.max) {
+          invalid.push({ key: key, reason: '範囲外' });
+        }
+      }
+
+      function pushCommonSynthArrayIssues(invalid, key, value, limit) {
+        if (!Array.isArray(value)) {
+          invalid.push({ key: key, reason: '配列が必要' });
+          return;
+        }
+        if (value.length < limit.minLen || value.length > limit.maxLen) {
+          invalid.push({ key: key, reason: '要素数が範囲外' });
+        }
+        for (let i = 0; i < value.length; i++) {
+          const el = value[i];
+          if (typeof el !== 'number' || !Number.isFinite(el)) {
+            invalid.push({ key: key, reason: '要素' + i + 'が不正' });
+          } else if (el < limit.min || el > limit.max) {
+            invalid.push({ key: key, reason: '要素' + i + 'が範囲外' });
+          }
+        }
+      }
+
+      function validateCommonSynthParams(input) {
+        const missing = [];
+        const invalid = [];
+        const src = commonSynthPlainObject(input);
+        if (!src) {
+          for (let i = 0; i < COMMON_SYNTH_KEYS.length; i++) missing.push(COMMON_SYNTH_KEYS[i]);
+          return { complete: false, missing: missing, invalid: invalid };
+        }
+        for (let i = 0; i < COMMON_SYNTH_KEYS.length; i++) {
+          if (!Object.prototype.hasOwnProperty.call(src, COMMON_SYNTH_KEYS[i])) missing.push(COMMON_SYNTH_KEYS[i]);
+        }
+        if (Object.prototype.hasOwnProperty.call(src, 'name')) {
+          if (typeof src.name !== 'string' || src.name.length === 0) {
+            invalid.push({ key: 'name', reason: '空でない文字列が必要' });
+          }
+        }
+        for (let i = 0; i < COMMON_SYNTH_ENUM_FIELDS.length; i++) {
+          const field = COMMON_SYNTH_ENUM_FIELDS[i];
+          if (!Object.prototype.hasOwnProperty.call(src, field.key)) continue;
+          if (field.allowed.indexOf(src[field.key]) === -1) {
+            invalid.push({ key: field.key, reason: '選択肢にない' });
+          }
+        }
+        for (let i = 0; i < COMMON_SYNTH_NUMBER_FIELDS.length; i++) {
+          const field = COMMON_SYNTH_NUMBER_FIELDS[i];
+          if (!Object.prototype.hasOwnProperty.call(src, field.key)) continue;
+          pushCommonSynthNumberIssue(invalid, field.key, src[field.key], field);
+        }
+        for (let i = 0; i < COMMON_SYNTH_BOOL_FIELDS.length; i++) {
+          const key = COMMON_SYNTH_BOOL_FIELDS[i];
+          if (!Object.prototype.hasOwnProperty.call(src, key)) continue;
+          if (typeof src[key] !== 'boolean') invalid.push({ key: key, reason: '真偽値が必要' });
+        }
+        if (Object.prototype.hasOwnProperty.call(src, 'sample') && src.sample !== null && typeof src.sample !== 'string') {
+          invalid.push({ key: 'sample', reason: '文字列またはnullが必要' });
+        }
+        if (Object.prototype.hasOwnProperty.call(src, 'fixedFreq') && src.fixedFreq !== null) {
+          const freq = src.fixedFreq;
+          if (typeof freq !== 'number' || !Number.isFinite(freq)) {
+            invalid.push({ key: 'fixedFreq', reason: '数値またはnullが必要' });
+          } else if (freq < 20 || freq > 8000) {
+            invalid.push({ key: 'fixedFreq', reason: '範囲外' });
+          }
+        }
+        if (Object.prototype.hasOwnProperty.call(src, 'scale')) {
+          pushCommonSynthArrayIssues(invalid, 'scale', src.scale, COMMON_SYNTH_ARRAY_FIELDS.scale);
+        }
+        if (Object.prototype.hasOwnProperty.call(src, 'chord')) {
+          pushCommonSynthArrayIssues(invalid, 'chord', src.chord, COMMON_SYNTH_ARRAY_FIELDS.chord);
+        }
+        return {
+          complete: missing.length === 0 && invalid.length === 0,
+          missing: missing,
+          invalid: invalid
+        };
+      }
+
+      function registerCommonSynthVoice(id, input) {
+        if (typeof id !== 'string' || id.length === 0 || id === '__proto__' || id === 'constructor' || id === 'prototype') {
+          return { ok: false, missing: [], invalid: [{ key: 'id', reason: '識別子が不正' }] };
+        }
+        const report = validateCommonSynthParams(input);
+        if (!report.complete) return { ok: false, missing: report.missing, invalid: report.invalid };
+        COMMON_SYNTH_VOICES[id] = createCommonSynthParams(input);
+        return { ok: true, missing: [], invalid: [] };
+      }
+
+      function getCommonSynthVoice(id) {
+        if (typeof id !== 'string' || !Object.prototype.hasOwnProperty.call(COMMON_SYNTH_VOICES, id)) return null;
+        return createCommonSynthParams(COMMON_SYNTH_VOICES[id]);
+      }
+
+      function trackUsesCommonEngine(trackDef) {
+        return !!(trackDef && trackDef.engine === 'common');
+      }
+
+      (function selfCheckCommonSynthParams() {
+        const checkIds = ['step1-selfcheck-ok', 'step1-selfcheck-bad'];
+        try {
+          const errors = [];
+          const expect = (cond, msg) => { if (!cond) errors.push(msg); };
+          const near = (actual, expected, msg) => {
+            expect(typeof actual === 'number' && Math.abs(actual - expected) < 1e-9, msg + ' actual=' + actual);
+          };
+
+          expect(Object.keys(COMMON_SYNTH_VOICES).length === 0, '登録表の初期状態が空');
+          expect(Object.prototype.hasOwnProperty.call(COMMON_SYNTH_DEFAULTS, 'outputGain') === false, 'outputGainは初期値に含めない');
+          expect(COMMON_SYNTH_KEYS.length === 57, '入力項目数');
+          for (let i = 0; i < COMMON_SYNTH_KEYS.length; i++) {
+            expect(Object.prototype.hasOwnProperty.call(COMMON_SYNTH_DEFAULTS, COMMON_SYNTH_KEYS[i]), '初期値の欠落 ' + COMMON_SYNTH_KEYS[i]);
+          }
+
+          const defaults = createCommonSynthParams({});
+          expect(defaults.outputGain === 0.3, '初期状態のoutputGain');
+          expect(defaults.scale !== COMMON_SYNTH_DEFAULTS.scale, 'scaleは新しい配列');
+          const defaultsScaleLength = defaults.scale.length;
+          defaults.scale.push(4);
+          expect(defaults.scale.length === defaultsScaleLength + 1, '返したscaleは変更できる');
+          expect(COMMON_SYNTH_DEFAULTS.scale.length === 1, '初期scaleは不変');
+          expect(defaults.chord !== COMMON_SYNTH_DEFAULTS.chord && defaults.chord.length === 0, 'chordは新しい空配列');
+          const defaultsReport = validateCommonSynthParams(defaults);
+          expect(defaultsReport.complete === true, '正規化結果は検証を通る');
+          expect(defaults.outputGain === 0.3, '検証はoutputGainを変えない');
+
+          const under = createCommonSynthParams({ osc1Level: 0.25, osc2Level: 0, noiseLevel: 0, unison: 1, chord: [], volume: 0.8 });
+          expect(under.outputGain === 0.8, '0.3以下ではvolumeを返す');
+          const exact = createCommonSynthParams({ osc1Level: 0.5, osc2Level: 0, noiseLevel: 0, unison: 1, chord: [], volume: 0.6 });
+          expect(exact.outputGain === 0.6, '0.3ちょうどは下げない');
+          const chorded = createCommonSynthParams({ osc1Level: 0.5, osc2Level: 0, noiseLevel: 0, unison: 1, chord: [4, 7], volume: 1 });
+          near(chorded.outputGain, 0.2, 'chordは追加音程なので音数はlength+1');
+          const doubled = createCommonSynthParams({ osc1Level: 0.5, osc2Level: 0, noiseLevel: 0, unison: 2, chord: [], volume: 1 });
+          expect(doubled.outputGain === 0.3, 'unisonを音量見込みに含める');
+          const layered = createCommonSynthParams({ osc1Level: 0, osc2Level: 0.25, noiseLevel: 0.25, unison: 1, chord: [], volume: 1 });
+          expect(layered.outputGain === 0.6, 'osc2とnoiseを音量見込みに含める');
+          const plainFm = createCommonSynthParams({ osc1Level: 0.2, osc2Level: 0, noiseLevel: 0, unison: 1, chord: [], volume: 1, fmEnabled: false, fmIndex: 0, fmLevel: 0 });
+          const fullFm = createCommonSynthParams({ osc1Level: 0.2, osc2Level: 0, noiseLevel: 0, unison: 1, chord: [], volume: 1, fmEnabled: true, fmIndex: 12, fmLevel: 1, fmRatio: 16 });
+          expect(plainFm.outputGain === fullFm.outputGain, 'FMはoutputGainに影響しない');
+          const forced = createCommonSynthParams({ osc1Level: 0.25, osc2Level: 0, noiseLevel: 0, unison: 1, chord: [], volume: 0.5, outputGain: 99 });
+          expect(forced.outputGain === 0.5, '入力のoutputGainは採用しない');
+          expect(createCommonSynthParams({ volume: 1 }).volume === 0.8, 'volumeは0.8まで');
+
+          expect(createCommonSynthParams({ fixedFreq: null }).fixedFreq === null, 'fixedFreqのnull');
+          expect(createCommonSynthParams({ fixedFreq: 20 }).fixedFreq === 20, 'fixedFreq下限');
+          expect(createCommonSynthParams({ fixedFreq: 8000 }).fixedFreq === 8000, 'fixedFreq上限');
+          expect(createCommonSynthParams({ fixedFreq: 19 }).fixedFreq === 20, 'fixedFreq下限へ制限');
+          expect(createCommonSynthParams({ fixedFreq: 8000.1 }).fixedFreq === 8000, 'fixedFreq上限へ制限');
+          expect(createCommonSynthParams({ fixedFreq: '440' }).fixedFreq === null, 'fixedFreqの文字列');
+          expect(createCommonSynthParams({ fixedFreq: NaN }).fixedFreq === null, 'fixedFreqのNaN');
+          expect(createCommonSynthParams({ fixedFreq: undefined }).fixedFreq === null, 'fixedFreqのundefined');
+          const falseFreq = { fixedFreq: false };
+          expect(createCommonSynthParams(falseFreq).fixedFreq === null, 'fixedFreqの不正値');
+          expect(falseFreq.fixedFreq === false, 'fixedFreqの入力は不変');
+
+          const scale = [10, 99, 'bad'];
+          const chord = [3, 'x', 40];
+          const copied = createCommonSynthParams({ scale: scale, chord: chord });
+          expect(copied.scale !== scale && copied.chord !== chord, '配列の参照が違う');
+          expect(scale[0] === 10 && scale[1] === 99 && scale[2] === 'bad', 'scale入力は不変');
+          expect(chord[0] === 3 && chord[1] === 'x' && chord[2] === 40, 'chord入力は不変');
+          expect(copied.scale[0] === 10 && copied.scale[1] === 72 && copied.scale[2] === 0, 'scale要素の制限と置換');
+          expect(copied.chord[0] === 3 && copied.chord[1] === 0 && copied.chord[2] === 36, 'chord要素の制限と置換');
+          scale.push(9);
+          expect(copied.scale.length === 3, '返したscaleは入力のpushを受けない');
+
+          const longScale = [];
+          for (let i = 0; i < 40; i++) longScale.push(i);
+          const longChord = [];
+          for (let i = 0; i < 10; i++) longChord.push(1);
+          const truncated = createCommonSynthParams({ osc1Level: 0.5, osc2Level: 0, noiseLevel: 0, unison: 1, volume: 1, scale: longScale, chord: longChord });
+          expect(longScale.length === 40 && longChord.length === 10, '長い配列の入力は不変');
+          expect(truncated.scale.length === 32 && truncated.chord.length === 8, '配列の要素数を制限');
+          near(truncated.outputGain, 0.3 / 4.5, '音量見込みは制限後のchord長を使う');
+          const emptyScale = createCommonSynthParams({ scale: [] });
+          expect(emptyScale.scale.length === 1 && emptyScale.scale[0] === 0, '空のscaleは初期要素');
+          expect(createCommonSynthParams({ scale: 'nope' }).scale.join(',') === '0', 'scaleが配列でない場合');
+          expect(createCommonSynthParams({ chord: null }).chord.length === 0, 'chordが配列でない場合');
+
+          const sparse = [1];
+          sparse.length = 3;
+          const sparseOut = createCommonSynthParams({ scale: sparse });
+          expect(sparse.length === 3 && sparse[1] === undefined && sparse[2] === undefined, '穴あき配列は不変');
+          expect(sparseOut.scale[0] === 1 && sparseOut.scale[1] === 0 && sparseOut.scale[2] === 0, '穴あき要素は初期値');
+
+          const watched = { scale: [0, 'x', 99], chord: [1, 2, 3, 4, 5, 6, 7, 8, 9], fixedFreq: false, name: '' };
+          const watchedJson = JSON.stringify(watched);
+          const watchedKeys = Object.keys(watched).join(',');
+          const watchedReport = validateCommonSynthParams(watched);
+          expect(JSON.stringify(watched) === watchedJson, '検証は入力値を変えない');
+          expect(Object.keys(watched).join(',') === watchedKeys, '検証は項目を増減しない');
+          expect(watched.scale[1] === 'x' && watched.scale[2] === 99, '検証は配列要素を変えない');
+          expect(watchedReport.complete === false, '不正な入力は不完全');
+          expect(watchedReport.missing.indexOf('volume') !== -1, '欠落項目を報告');
+          expect(watchedReport.invalid.length > 0, '不正項目を報告');
+
+          const normalized = createCommonSynthParams({ volume: 5, scale: [100, -100, 'x'], fixedFreq: 3, chord: [99] });
+          expect(normalized.volume === 0.8 && normalized.fixedFreq === 20, '数値の範囲制限');
+          expect(normalized.scale[0] === 72 && normalized.scale[1] === -72 && normalized.scale[2] === 0, 'scaleの正規化');
+          expect(normalized.chord[0] === 36, 'chordの正規化');
+          expect(validateCommonSynthParams(normalized).complete === true, '正規化後は全項目が有効');
+          const saved = registerCommonSynthVoice('step1-selfcheck-ok', normalized);
+          expect(saved.ok === true, '全項目がある定義は登録できる');
+          normalized.scale[0] = 1;
+          normalized.volume = 0.1;
+          const loaded = getCommonSynthVoice('step1-selfcheck-ok');
+          expect(loaded.scale[0] === 72 && loaded.volume === 0.8, '登録値は入力の変更を受けない');
+          loaded.scale[0] = 5;
+          expect(getCommonSynthVoice('step1-selfcheck-ok').scale[0] === 72, '取得結果は登録値を変えない');
+
+          const partial = createCommonSynthParams({});
+          delete partial.outputGain;
+          delete partial.pan;
+          const denied = registerCommonSynthVoice('step1-selfcheck-bad', partial);
+          expect(denied.ok === false && denied.missing.indexOf('pan') !== -1, '欠落がある定義は登録しない');
+          expect(getCommonSynthVoice('step1-selfcheck-bad') === null, '拒否した定義は残らない');
+          const over = createCommonSynthParams({});
+          delete over.outputGain;
+          over.volume = 2;
+          expect(registerCommonSynthVoice('step1-selfcheck-bad', over).ok === false, '範囲外は登録しない');
+
+          const legacyTrack = { name: '909 KICK', mode: 'synth', synthType: 'kick' };
+          expect(trackUsesCommonEngine(legacyTrack) === false, '既存トラックは共通エンジンではない');
+          expect(legacyTrack.engine === undefined, '判定はトラック定義を変えない');
+          expect(trackUsesCommonEngine({ engine: 'common' }) === true, 'engine指定だけを見る');
+          expect(trackUsesCommonEngine(null) === false && trackUsesCommonEngine(undefined) === false, '空の判定');
+
+          if (errors.length > 0) console.error('共通シンセパラメーター検査に失敗:', errors);
+        } catch (err) {
+          console.error('共通シンセパラメーター検査に失敗:', err);
+        } finally {
+          for (let i = 0; i < checkIds.length; i++) delete COMMON_SYNTH_VOICES[checkIds[i]];
+        }
+      })();
+
+      // =========================================================================
       // 2. MODULAR AUDIO ENGINE & CUSTOM SYNTH ENGINES
       // =========================================================================
       // ★ 独自Web Audioシンセエンジンを関数として登録可能 (アプローチB)
+
+        // =========================================================================
+      // ★ PATCH 共通シンセ：全パラメーターの一覧（書き忘れた項目は、この値で動きます）
+      // =========================================================================
+      const PATCH_TEMPLATE = {
+        // ① 基本
+        volume: 0.5,            // 音量（0〜1）
+        pan: 0,                 // 左右の位置（-1〜1）
+        mono: false,            // true：次のタイミングの音が始まったら、前のタイミングの音を止める（同じタイミングの音は一緒に鳴る＝和音OK）
+        monoFade: 0.02,         // monoの時、前の音が消えるまでの時間（秒）
+        speed: 1,               // 円盤の回転速度（0.25 = 4小節で1周）
+        // ② 音源
+        osc1Wave: 'sawtooth',   // メインの波形（'sawtooth' 'square' 'triangle' 'sine' 'none'）
+        osc1Level: 1,           // メインの音量
+        osc1Octave: 0,          // メインのオクターブ（-1で1オクターブ下）
+        osc1Detune: 0,          // メインのずれ（セント）
+        osc2Wave: 'none',       // 2本目の波形（'none'で無効。FMはかからない）
+        osc2Level: 1,
+        osc2Octave: 0,
+        osc2Detune: 0,
+        noiseLevel: 0,          // ノイズの音量
+        unison: 1,              // 同じ音を重ねる本数（スーパーソー）
+        unisonDetune: 0,        // 重ねた音のずれ（セント）
+        unisonSpread: 0,        // 重ねた音の左右の広がり（0〜1）
+        octaveOffset: 0,        // 全体の高さ（半音。-12で1オクターブ下）
+        // ③ ピッチの動き
+        fixedFreq: 0,           // 0以外：音階を無視して、この周波数（Hz）に固定
+        glide: 0,               // 前の音からのスライド時間（秒）
+        pitchStart: 0,          // 音の始めのずれ（半音。マイナスは下から）
+        pitchStartTime: 0,      // そのずれが戻るまでの時間（秒）
+        pitchEnd: 0,            // 音の終わりのずれ（半音。マイナスは落ちる）
+        pitchEndTime: 0,        // 終わりに向かって動く時間（秒）
+        fade: 0,                // 0以外：音量の立ち上がり・消え際、ピッチの始め・終わりを同じ秒数にする
+        // ④ FM変調（メイン osc1 にかかる）
+        fmRatio: 0,             // モジュレーター周波数 ÷ メイン周波数。0でFMなし
+        fmWave: 'sine',         // モジュレーターの波形
+        fmDepth: 0,             // 音の始めの深さ（0〜10。大きいほど金属的）
+        fmDepthEnd: 0,          // 深さが落ち着いた先の値
+        fmDecay: 1,             // 深さが変わる時間（音の長さに対する割合 0〜1）
+        fmCutoffLink: 0,        // 0〜1：CUTOFFノブでFMの深さも変える度合い
+        // ⑤ LFO（ゆらぎ）
+        lfoTarget: 'none',      // 'none' 'pitch'（セント）'filter'（Hz）'amp'（0〜1）
+        lfoWave: 'sine',
+        lfoRate: 5,             // 速さ（Hz）
+        lfoDepth: 0,            // 深さ（lfoTargetごとに単位が変わる）
+        // ⑥ フィルター
+        filterType: 'lowpass',  // 'lowpass' 'highpass' 'bandpass' 'notch' 'none'
+        cutoff: 1000,           // 基準の周波数（Hz）
+        cutoffRange: 4000,      // CUTOFFノブで足される幅（Hz）
+        radiusCutoff: 0,        // 円盤の外側ほど明るくする量（Hz）
+        q: 1,                   // レゾナンスの基本値
+        qRange: 10,             // RESOノブで足される幅
+        filterEnv: true,        // false：フィルターを動かさず固定
+        filterEnvDrop: 0.25,    // 終わりの閉じ具合（基準に対する割合。1で動かさない）
+        filterEnvTime: 0.85,    // 閉じ終わる位置（音の長さに対する割合）
+        filterMin: 60,          // 閉じた時の下限（Hz）
+        // ⑦ 音量の形・長さ
+        attack: 0.006,          // 立ち上がり（秒）
+        decayTime: 0,           // ピークからサステインまで下がる時間（秒）。0 = 音の長さいっぱい
+        sustain: 0,             // 保つ音量（0〜1）
+        release: 0.05,          // 消えるまでの時間（秒）
+        lengthScale: 3.5,       // 長さ（ステップ）= DECAYノブ × この値
+        lengthMin: 0.5,         // 最短の長さ（ステップ）
+        lengthSteps: 0,         // 0以外：DECAYノブに関係なく、この長さ（ステップ）に固定（16 = 4拍）
+        // ⑧ 歪み
+        drive: 0,               // 最初からかける歪み（0〜0.95）
+        driveRange: 1           // DRIVEノブで足される量
+      };
       const SYNTH_ENGINES = {
+        // ★ 昔のテクノ「WEIRD」エンジン完全復活 (LFO FM変調・ピッチスウィープFX)
+        weird: (engine, tIdx, time, radius, noteVal, p, def) => {
+          const ctx = engine.ctx;
+          const dur = 0.08 + p.decay * 0.45;
+          const baseFreq = 180 + radius * 1100;
+
+          const osc = ctx.createOscillator();
+          const lfo = ctx.createOscillator();
+          const lfoGain = ctx.createGain();
+          const gain = ctx.createGain();
+
+          // CUTOFFノブで波形変化 ('sine' -> 'square' -> 'sawtooth' -> 'triangle')
+          const waves = ['sine', 'square', 'sawtooth', 'triangle'];
+          osc.type = waves[Math.min(3, Math.floor(p.cutoff * 4))];
+          osc.frequency.setValueAtTime(baseFreq, time);
+          osc.frequency.exponentialRampToValueAtTime(Math.max(50, baseFreq * (0.4 + p.reso)), time + dur);
+
+          // 高速LFOによる金属・モジュレーション変調
+          lfo.type = 'sine';
+          lfo.frequency.value = 12 + p.reso * 50;
+          lfoGain.gain.value = 80 + radius * 350;
+          lfo.connect(lfoGain);
+          lfoGain.connect(osc.frequency);
+
+          gain.gain.setValueAtTime(0.4, time);
+          gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+          let node = osc;
+          if (p.drive > 0.05) {
+            const shaper = ctx.createWaveShaper();
+            shaper.curve = engine.makeDistortionCurve(p.drive * 0.8);
+            osc.connect(shaper);
+            node = shaper;
+          }
+
+          node.connect(gain);
+          gain.connect(engine.masterGain);
+
+          osc.start(time);
+          lfo.start(time);
+          osc.stop(time + dur + 0.02);
+          lfo.stop(time + dur + 0.02);
+        },
+
+         // ★ KAWAII FUTURE BASS コード・スーパーソー
+        // 始めに下からしゃくり上げ、終わりにピッチが落ちる
+        fb_chord: (engine, tIdx, time, radius, noteVal, p, def) => {
+          const ctx = engine.ctx;
+          const stepDur = (60 / bpm) / 4;
+          const dur = Math.max(stepDur * 0.5, p.decay * stepDur * (def.decayScale || 4.0));
+          const chord = def.chord || [0, 4, 7, 11];
+          const detunes = def.detunes || [-14, 0, 14];
+          const pans = [-0.7, 0, 0.7];
+          const inSemi = def.pitchIn !== undefined ? def.pitchIn : 2;
+          const outSemi = def.pitchOut !== undefined ? def.pitchOut : 3;
+          const oct = def.octaveOffset || 0;
+          // ★ fade：立ち上がりと鳴り終わり（音量・ピッチ）に同じ時間をかける
+          const fade = Math.min(def.fade !== undefined ? def.fade : 0.1, dur * 0.45);
+
+          const mix = ctx.createGain();
+          mix.gain.value = (def.volume || 0.5) / Math.sqrt(chord.length * detunes.length) * 0.6;
+
+          const filter = ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          const cutoff = 1200 + p.cutoff * 9000;
+          filter.frequency.setValueAtTime(cutoff, time);
+          if (def.filterEnv !== false) {
+            filter.frequency.exponentialRampToValueAtTime(Math.max(400, cutoff * (def.filterEnvDrop || 0.5)), time + dur);
+          }
+          filter.Q.value = 0.7 + p.reso * 5;
+
+          const gain = ctx.createGain();
+          engine.applyEnvelope(gain.gain, time, dur, 1, Object.assign({}, def, { attack: fade, release: fade }));
+
+          mix.connect(filter);
+          let last = filter;
+          if (p.drive > 0.05) {
+            const shaper = ctx.createWaveShaper();
+            shaper.curve = engine.makeDistortionCurve(p.drive * 0.6);
+            filter.connect(shaper);
+            last = shaper;
+          }
+          last.connect(gain);
+          gain.connect(engine.masterGain);
+
+          const stopTime = time + dur + 0.03;
+          for (const iv of chord) {
+            const freq = 440 * Math.pow(2, (noteVal + iv + oct - 9) / 12);
+            const fIn = freq * Math.pow(2, -inSemi / 12);
+            const fOut = freq * Math.pow(2, -outSemi / 12);
+            detunes.forEach((det, i) => {
+              const osc = ctx.createOscillator();
+              osc.type = 'sawtooth';
+              osc.detune.setValueAtTime(det, time);
+              osc.frequency.setValueAtTime(fIn, time);
+              osc.frequency.exponentialRampToValueAtTime(freq, time + fade);
+              osc.frequency.setValueAtTime(freq, time + dur - fade);
+              osc.frequency.exponentialRampToValueAtTime(fOut, time + dur);
+              const pan = ctx.createStereoPanner();
+              pan.pan.value = pans[i % pans.length];
+              osc.connect(pan);
+              pan.connect(mix);
+              osc.start(time);
+              osc.stop(stopTime);
+            });
+          }
+        },
         // 例：FMベル・金属音エンジン
         fm_bell: (engine, tIdx, time, radius, semitones, p, def) => {
           const ctx = engine.ctx;
@@ -411,6 +1131,8 @@
               this.triggerHiHatSynth(time, radius, p);
             } else if (def.synthType === 'acid') {
               this.triggerAcid303(tIdx, time, radius, noteVal, p, def);
+               } else if (def.synthType === 'patch') {
+              this.triggerPatch(tIdx, time, radius, noteVal, p, def);
             } else if (SYNTH_ENGINES[def.synthType]) {
               // 登録された独自シンセエンジン
               SYNTH_ENGINES[def.synthType](this, tIdx, time, radius, noteVal, p, def);
@@ -472,14 +1194,22 @@
 
         triggerAcid303(tIdx, time, radius, freq, p) {
           const stepDur = (60 / bpm) / 4;
-          const decayMult = (p.decay !== undefined) ? (0.8 + p.decay * 3.2) : 2.0;
-          const dur = stepDur * decayMult;
+          const dur = stepDur * (2.0 + p.decay * 10.0);
+
+          // 前の音を止める（モノフォニック化。これでグライドが聞こえる）
+          if (this.acidVoice) {
+            try {
+              this.acidVoice.choke.gain.setTargetAtTime(0, time, 0.004);
+              this.acidVoice.osc.stop(time + 0.04);
+            } catch (_) {}
+          }
 
           const osc = this.ctx.createOscillator();
           osc.type = 'sawtooth';
           const prevFreq = this.prevFreqs[tIdx] || 110;
+          const glide = Math.min(0.09, stepDur * 0.7);
           osc.frequency.setValueAtTime(prevFreq, time);
-          osc.frequency.exponentialRampToValueAtTime(freq, time + Math.min(0.045, stepDur * 0.5));
+          osc.frequency.exponentialRampToValueAtTime(freq, time + glide);
           this.prevFreqs[tIdx] = freq;
 
           const filter = this.ctx.createBiquadFilter();
@@ -497,15 +1227,19 @@
           gain.gain.linearRampToValueAtTime(0.45, time + 0.008);
           gain.gain.exponentialRampToValueAtTime(0.001, time + dur * 0.95);
 
+          const choke = this.ctx.createGain();
+          choke.gain.setValueAtTime(1, time);
+
           osc.connect(filter);
           filter.connect(shaper);
           shaper.connect(gain);
-          gain.connect(this.masterGain);
+          gain.connect(choke);
+          choke.connect(this.masterGain);
 
           osc.start(time);
           osc.stop(time + dur + 0.02);
+          this.acidVoice = { osc, choke };
         }
-
         triggerMelodicSynth(tIdx, time, radius, semitones, waveType, p, def = {}) {
           const oct = def.octaveOffset || 0;
           const freq = 440 * Math.pow(2, (semitones + oct - 9) / 12);
@@ -549,16 +1283,18 @@
             ? def.baseCutoff + p.cutoff * (def.cutoffRange || 5000)
             : 160 + Math.pow(p.cutoff, 2) * 14000;
           
-          filter.frequency.setValueAtTime(baseCutoff + radius * (def.radiusCutoff || 1500), time);
-          filter.frequency.exponentialRampToValueAtTime(Math.max(60, baseCutoff * (def.filterEnvDrop || 0.25)), time + dur * 0.85);
+          const startCutoff = baseCutoff + radius * (def.radiusCutoff || 1500);
+          filter.frequency.setValueAtTime(startCutoff, time);
+
+          // ★ filterEnv: false の場合はフィルターを動かさず固定（ピコピコ・オルガン等に最適）
+          if (def.filterEnv !== false) {
+            filter.frequency.exponentialRampToValueAtTime(Math.max(60, baseCutoff * (def.filterEnvDrop || 0.25)), time + dur * 0.85);
+          }
           filter.Q.value = (def.baseQ || 2) + p.reso * (def.resoRange || 18);
 
           // 4. アンプエンベロープ
           const gain = this.ctx.createGain();
-          gain.gain.setValueAtTime(0.001, time);
-          const attack = def.attack !== undefined ? def.attack : 0.006;
-          gain.gain.linearRampToValueAtTime(def.volume || 0.65, time + attack);
-          gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+          this.applyEnvelope(gain.gain, time, dur, def.volume || 0.65, def);
 
           // 5. ディストーション / オーバードライブ
           const driveAmount = p.drive + (def.driveBase || 0);
@@ -583,6 +1319,257 @@
           }
         }
 
+        // ★ アンプエンベロープ共通処理（sustain 指定なしなら従来どおり）
+        applyEnvelope(param, time, dur, peak, def) {
+          const attack = def.attack !== undefined ? def.attack : 0.006;
+          param.setValueAtTime(0.001, time);
+          param.linearRampToValueAtTime(peak, time + attack);
+          if (def.sustain === undefined) {
+            param.exponentialRampToValueAtTime(0.001, time + dur);
+            return;
+          }
+          const sus = Math.max(0.001, peak * def.sustain);
+          const release = Math.min(def.release !== undefined ? def.release : 0.08, dur * 0.5);
+          const dt = def.decayTime !== undefined ? def.decayTime : 0.12;
+          const decayEnd = Math.max(time + attack + 0.002, Math.min(time + attack + dt, time + dur - release));
+          const relStart = Math.max(time + dur - release, decayEnd);
+          param.exponentialRampToValueAtTime(sus, decayEnd);
+          param.setValueAtTime(sus, relStart);
+          param.exponentialRampToValueAtTime(0.001, Math.max(time + dur, relStart + 0.01));
+        }
+
+         // =====================================================================
+        // ★ PATCH 共通シンセ（synthType: 'patch'）
+        //   音源 → mix → フィルター → 歪み → トレモロ → 音量 → パン → master
+        // =====================================================================
+        // =====================================================================
+        // ★ PATCH 共通シンセ（synthType: 'patch'）
+        //   音源 → mix → フィルター → 歪み → トレモロ → 音量 → パン → master
+        // =====================================================================
+        triggerPatch(tIdx, time, radius, noteVal, p, def) {
+          const ctx = this.ctx;
+          const d = Object.assign({}, PATCH_TEMPLATE, def);
+          const stepDur = (60 / bpm) / 4;
+          const dur = d.lengthSteps > 0
+            ? stepDur * d.lengthSteps
+            : Math.max(stepDur * d.lengthMin, p.decay * stepDur * d.lengthScale);
+          const stopTime = time + dur + 0.03;
+          if (!this.monoVoices) this.monoVoices = [];
+ 
+          // fade：音量とピッチの「立ち上がり」と「消え際」を同じ時間にする
+          const fade = d.fade > 0 ? Math.min(d.fade, dur * 0.45) : 0;
+          const attack = fade > 0 ? fade : d.attack;
+          const release = fade > 0 ? fade : d.release;
+          const rampIn = fade > 0 ? fade : Math.max(d.glide, d.pitchStartTime);
+          const rampOut = fade > 0 ? fade : d.pitchEndTime;
+ 
+          // --- 音程 ---
+          const rootFreq = d.fixedFreq > 0
+            ? d.fixedFreq
+            : 440 * Math.pow(2, (noteVal + d.octaveOffset - 9) / 12);
+          const prev = this.prevFreqs[tIdx] || rootFreq;
+          this.prevFreqs[tIdx] = rootFreq;
+          const startMult = (d.glide > 0 ? prev / rootFreq : 1) * Math.pow(2, d.pitchStart / 12);
+          const hasStart = rampIn > 0 && Math.abs(startMult - 1) > 1e-6;
+          const hasEnd = rampOut > 0 && Math.abs(d.pitchEnd) > 1e-6;
+          const tIn = Math.min(rampIn, dur * 0.9);
+          const tOut = Math.min(rampOut, dur * 0.9);
+          const endMult = Math.pow(2, d.pitchEnd / 12);
+          const schedPitch = (param, f) => {
+            if (hasStart) {
+              param.setValueAtTime(Math.max(1, f * startMult), time);
+              param.exponentialRampToValueAtTime(f, time + tIn);
+            } else {
+              param.setValueAtTime(f, time);
+            }
+            if (hasEnd) {
+              const t0 = Math.max(time + (hasStart ? tIn : 0), time + dur - tOut);
+              param.setValueAtTime(f, t0);
+              param.exponentialRampToValueAtTime(Math.max(1, f * endMult), time + dur);
+            }
+          };
+ 
+          // --- 回路（後ろから順につなぐ） ---
+          const mix = ctx.createGain();
+          const chain = [mix];
+ 
+          let filter = null;
+          if (d.filterType !== 'none') {
+            filter = ctx.createBiquadFilter();
+            filter.type = d.filterType;
+            const baseCut = d.cutoff + p.cutoff * d.cutoffRange;
+            filter.frequency.setValueAtTime(baseCut + radius * d.radiusCutoff, time);
+            if (d.filterEnv) {
+              filter.frequency.exponentialRampToValueAtTime(
+                Math.max(Math.max(1, d.filterMin), baseCut * d.filterEnvDrop), time + dur * d.filterEnvTime);
+            }
+            filter.Q.value = d.q + p.reso * d.qRange;
+            chain.push(filter);
+          }
+ 
+          const driveAmt = d.drive + p.drive * d.driveRange;
+          if (driveAmt > 0.05) {
+            const shaper = ctx.createWaveShaper();
+            shaper.curve = this.makeDistortionCurve(Math.min(0.95, driveAmt * 0.85));
+            chain.push(shaper);
+          }
+ 
+          // LFO
+          const useLfo = d.lfoTarget !== 'none' && d.lfoDepth !== 0;
+          let lfoGain = null;
+          if (useLfo) {
+            const lfo = ctx.createOscillator();
+            lfo.type = d.lfoWave;
+            lfo.frequency.value = d.lfoRate;
+            lfoGain = ctx.createGain();
+            lfo.connect(lfoGain);
+            if (d.lfoTarget === 'filter' && filter) {
+              lfoGain.gain.value = d.lfoDepth;
+              lfoGain.connect(filter.frequency);
+            } else if (d.lfoTarget === 'amp') {
+              const trem = ctx.createGain();
+              trem.gain.value = 1 - d.lfoDepth / 2;
+              lfoGain.gain.value = d.lfoDepth / 2;
+              lfoGain.connect(trem.gain);
+              chain.push(trem);
+            } else if (d.lfoTarget === 'pitch') {
+              lfoGain.gain.value = d.lfoDepth;
+            }
+            lfo.start(time);
+            lfo.stop(stopTime);
+          }
+ 
+          const env = ctx.createGain();
+          this.patchEnv(env.gain, time, dur, d.volume, d, attack, release);
+          chain.push(env);
+ 
+          if (d.pan !== 0) {
+            const panner = ctx.createStereoPanner();
+            panner.pan.value = d.pan;
+            chain.push(panner);
+          }
+ 
+          let choke = null;
+          if (d.mono) {
+            choke = ctx.createGain();
+            choke.gain.setValueAtTime(1, time);
+            chain.push(choke);
+          }
+ 
+          for (let i = 0; i < chain.length - 1; i++) chain[i].connect(chain[i + 1]);
+          chain[chain.length - 1].connect(this.masterGain);
+ 
+          // --- 音源 ---
+          const layers = [];
+          if (d.osc1Wave !== 'none') layers.push({ wave: d.osc1Wave, level: d.osc1Level, oct: d.osc1Octave, det: d.osc1Detune, fm: true });
+          if (d.osc2Wave !== 'none') layers.push({ wave: d.osc2Wave, level: d.osc2Level, oct: d.osc2Octave, det: d.osc2Detune, fm: false });
+ 
+          const nUni = Math.max(1, Math.floor(d.unison));
+          const norm = 1 / Math.sqrt(nUni);
+          const sources = [];
+ 
+          const noteFreq = rootFreq;
+          for (const L of layers) {
+            const carrierFreq = noteFreq * Math.pow(2, L.oct);
+ 
+            // FM：モジュレーターの音で、メインの周波数を揺らす
+            let modGain = null;
+            if (L.fm && d.fmRatio > 0 && (d.fmDepth > 0 || d.fmDepthEnd > 0)) {
+              const modFreq = carrierFreq * d.fmRatio;
+              const link = d.fmCutoffLink;
+              const knobScale = (1 - link) + link * (0.3 + 1.5 * p.cutoff);
+              const mod = ctx.createOscillator();
+              mod.type = d.fmWave;
+              schedPitch(mod.frequency, modFreq);
+              modGain = ctx.createGain();
+              modGain.gain.setValueAtTime(Math.max(0.0001, d.fmDepth * modFreq * knobScale), time);
+              modGain.gain.exponentialRampToValueAtTime(
+                Math.max(0.0001, d.fmDepthEnd * modFreq * knobScale), time + Math.max(0.005, dur * d.fmDecay));
+              mod.connect(modGain);
+              mod.start(time);
+              mod.stop(stopTime);
+            }
+ 
+            for (let u = 0; u < nUni; u++) {
+              const off = nUni > 1 ? (u / (nUni - 1)) * 2 - 1 : 0;   // -1〜+1
+              const osc = ctx.createOscillator();
+              osc.type = L.wave;
+              schedPitch(osc.frequency, carrierFreq);
+              osc.detune.setValueAtTime(L.det + off * d.unisonDetune, time);
+              if (modGain) modGain.connect(osc.frequency);
+              if (useLfo && d.lfoTarget === 'pitch') lfoGain.connect(osc.detune);
+ 
+              const vg = ctx.createGain();
+              vg.gain.value = L.level * norm;
+              osc.connect(vg);
+              if (nUni > 1 && d.unisonSpread > 0) {
+                const pn = ctx.createStereoPanner();
+                pn.pan.value = off * d.unisonSpread;
+                vg.connect(pn);
+                pn.connect(mix);
+              } else {
+                vg.connect(mix);
+              }
+              osc.start(time);
+              osc.stop(stopTime);
+              sources.push(osc);
+            }
+          }
+ 
+          // ノイズ
+          if (d.noiseLevel > 0) {
+            if (!this.noiseBuf) {
+              const len = ctx.sampleRate;
+              this.noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+              const nd = this.noiseBuf.getChannelData(0);
+              for (let i = 0; i < len; i++) nd[i] = Math.random() * 2 - 1;
+            }
+            const ns = ctx.createBufferSource();
+            ns.buffer = this.noiseBuf;
+            ns.loop = true;
+            const ng = ctx.createGain();
+            ng.gain.value = d.noiseLevel;
+            ns.connect(ng);
+            ng.connect(mix);
+            ns.start(time, Math.random() * 0.5);
+            ns.stop(stopTime);
+            sources.push(ns);
+          }
+ 
+          // mono：新しいタイミングの音が始まったら、前のタイミングの音を止める
+          //（同じタイミングの音は一緒に鳴るので、和音が作れる）
+          if (d.mono) {
+            let mv = this.monoVoices[tIdx];
+            if (!mv || Math.abs(time - mv.batchTime) > 0.005) {
+              if (mv) {
+                for (const v of mv.voices) {
+                  try {
+                    v.choke.gain.setTargetAtTime(0, time, Math.max(0.002, d.monoFade / 4));
+                    for (const o of v.sources) o.stop(time + d.monoFade * 1.5 + 0.02);
+                  } catch (_) {}
+                }
+              }
+              mv = { batchTime: time, voices: [] };
+              this.monoVoices[tIdx] = mv;
+            }
+            mv.voices.push({ choke, sources });
+          }
+        }
+ 
+        // PATCH用の音量の形：立ち上がり → 下がる → サステイン → 消える
+        patchEnv(param, time, dur, peak, d, attack, release) {
+          const sus = Math.max(0.001, peak * d.sustain);
+          const rel = Math.min(release, dur * 0.5);
+          param.setValueAtTime(0.001, time);
+          param.linearRampToValueAtTime(peak, time + attack);
+          const dt = d.decayTime > 0 ? d.decayTime : Math.max(0.01, dur - rel - attack);
+          const decayEnd = Math.max(time + attack + 0.002, Math.min(time + attack + dt, time + dur - rel));
+          const relStart = Math.max(time + dur - rel, decayEnd);
+          param.exponentialRampToValueAtTime(sus, decayEnd);
+          param.setValueAtTime(sus, relStart);
+          param.exponentialRampToValueAtTime(0.001, Math.max(time + dur, relStart + 0.01));
+        }
+
         stopAllVoices() {
           for (const vState of this.trackActiveVoices) {
             for (const v of vState.nodes) {
@@ -594,6 +1581,472 @@
       }
 
       const sound = new ModularSoundEngine();
+
+      // =========================================================================
+      // 2b. COMMON SYNTH ENGINE
+      // ModularSoundEngine とは独立。masterGain には接続しない。
+      // 起動時には発音しない。AudioContext は外から受け取る。
+      // =========================================================================
+      const COMMON_SYNTH_BELL_ID = 'fm-bell-test';
+      const COMMON_SYNTH_MAX_VOICES = 8;
+
+      function commonSynthClampFreq(freq) {
+        if (typeof freq !== 'number' || !Number.isFinite(freq) || freq <= 0) return 440;
+        if (freq < 1) return 1;
+        if (freq > 12000) return 12000;
+        return freq;
+      }
+
+      function commonSynthClampFilterFreq(ctx, freq) {
+        const nyquist = ((ctx && ctx.sampleRate) || 44100) * 0.45;
+        let f = freq;
+        if (typeof f !== 'number' || !Number.isFinite(f) || f <= 0) f = 2000;
+        if (f < 20) f = 20;
+        if (f > nyquist) f = nyquist;
+        return f;
+      }
+
+      function commonSynthNoteFrequency(params, noteVal) {
+        if (typeof params.fixedFreq === 'number' && Number.isFinite(params.fixedFreq)) {
+          return commonSynthClampFreq(params.fixedFreq);
+        }
+        let semi = (params.scale && params.scale.length) ? params.scale[0] : 0;
+        if (typeof noteVal === 'number' && Number.isFinite(noteVal)) semi = noteVal;
+        const oct = (typeof params.octaveOffset === 'number' && Number.isFinite(params.octaveOffset)) ? params.octaveOffset : 0;
+        return commonSynthClampFreq(440 * Math.pow(2, (semi + oct - 9) / 12));
+      }
+
+      function commonSynthSchedulePitch(param, time, duration, params, settled, glideFrom) {
+        const target = commonSynthClampFreq(settled);
+        const start = commonSynthClampFreq(target * Math.pow(2, params.pitchStart / 12));
+        const end = commonSynthClampFreq(target * Math.pow(2, params.pitchEnd / 12));
+        const gate = Math.max(0.02, duration);
+        const t0 = time;
+        let locked = t0;
+        if (params.glide > 0 && glideFrom > 1) {
+          const from = commonSynthClampFreq(glideFrom);
+          param.setValueAtTime(from, t0);
+          const gEnd = t0 + Math.max(0.001, params.glide);
+          if (Math.abs(from - target) > 0.5) param.exponentialRampToValueAtTime(target, gEnd);
+          locked = gEnd;
+        } else {
+          param.setValueAtTime(start, t0);
+          const sEnd = t0 + Math.max(0.001, params.pitchStartTime);
+          if (Math.abs(start - target) > 0.5) {
+            param.exponentialRampToValueAtTime(target, sEnd);
+            locked = sEnd;
+          }
+        }
+        if (Math.abs(end - target) > 0.5) {
+          const bendEnd = t0 + gate;
+          const bendStart = Math.max(locked + 0.002, bendEnd - Math.max(0.001, params.pitchEndTime));
+          if (bendEnd > bendStart) {
+            param.setValueAtTime(target, bendStart);
+            param.exponentialRampToValueAtTime(end, bendEnd);
+          }
+        }
+      }
+
+      function commonSynthScheduleAmp(param, time, duration, attack, decay, sustain, release) {
+        const gate = Math.max(0.02, duration);
+        const atk = Math.min(Math.max(0.001, attack), Math.max(0.001, gate - 0.002));
+        const rel = Math.max(0.005, release);
+        const susLevel = Math.max(0.0001, Math.min(1, sustain));
+        const t0 = time;
+        const t1 = t0 + atk;
+        let t2 = t1 + Math.max(0, decay);
+        const tGate = t0 + gate;
+        if (t2 > tGate) t2 = tGate;
+        param.setValueAtTime(0, t0);
+        param.linearRampToValueAtTime(1, t1);
+        let hold = 1;
+        if (t2 > t1 + 0.001 && susLevel < 0.999) {
+          param.exponentialRampToValueAtTime(susLevel, t2);
+          hold = susLevel;
+        }
+        const tRel = Math.max(t2 + 0.001, tGate);
+        param.setValueAtTime(hold, tRel);
+        param.linearRampToValueAtTime(0, tRel + rel);
+        return tRel + rel;
+      }
+
+      function commonSynthScheduleFm(param, time, duration, attack, decay, sustain, release, peak) {
+        const peakValue = (typeof peak === 'number' && Number.isFinite(peak)) ? Math.max(0, peak) : 0;
+        const gate = Math.max(0.02, duration);
+        const atk = Math.min(Math.max(0.001, attack), Math.max(0.001, gate - 0.002));
+        const rel = Math.max(0.005, release);
+        const sus = Math.max(0, Math.min(1, sustain)) * peakValue;
+        const t0 = time;
+        const t1 = t0 + atk;
+        let t2 = t1 + Math.max(0, decay);
+        const tGate = t0 + gate;
+        if (t2 > tGate) t2 = tGate;
+        param.setValueAtTime(0, t0);
+        if (!(peakValue > 0)) return tGate;
+        param.linearRampToValueAtTime(peakValue, t1);
+        let hold = peakValue;
+        if (t2 > t1 + 0.001) {
+          param.linearRampToValueAtTime(sus, t2);
+          hold = sus;
+        }
+        const tRel = Math.max(t2 + 0.001, tGate);
+        param.setValueAtTime(hold, tRel);
+        param.linearRampToValueAtTime(0, tRel + rel);
+        return tRel + rel;
+      }
+
+      function commonSynthDriveCurve(amount) {
+        const k = Math.max(0, Math.min(0.9, amount)) * 40;
+        const n = 256;
+        const curve = new Float32Array(n);
+        for (let i = 0; i < n; i++) {
+          const x = (i / (n - 1)) * 2 - 1;
+          curve[i] = ((1 + k) * x) / (1 + k * Math.abs(x));
+        }
+        return curve;
+      }
+
+      class CommonSynthEngine {
+        constructor(audioContext) {
+          this.ctx = null;
+          this.output = null;
+          this.compressor = null;
+          this.voices = Object.create(null);
+          this.nextId = 1;
+          this.disposed = false;
+          this.prevFreq = 0;
+          if (audioContext) this._adopt(audioContext);
+        }
+
+        _adopt(audioContext) {
+          if (this.disposed) return false;
+          if (!audioContext || typeof audioContext.createGain !== 'function') return false;
+          if (audioContext.state === 'closed') return false;
+          if (this.ctx && this.ctx !== audioContext) return false;
+          this.ctx = audioContext;
+          if (this.output) return true;
+          try {
+            this.output = audioContext.createGain();
+            this.output.gain.value = 1;
+            this.compressor = audioContext.createDynamicsCompressor();
+            this.compressor.threshold.value = -3;
+            this.compressor.knee.value = 0;
+            this.compressor.ratio.value = 12;
+            this.compressor.attack.value = 0.002;
+            this.compressor.release.value = 0.05;
+            this.output.connect(this.compressor);
+            this.compressor.connect(audioContext.destination);
+            return true;
+          } catch (err) {
+            try { if (this.output) this.output.disconnect(); } catch (ignore) {}
+            try { if (this.compressor) this.compressor.disconnect(); } catch (ignore) {}
+            this.output = null;
+            this.compressor = null;
+            this.ctx = null;
+            return false;
+          }
+        }
+
+        play(params, noteVal, duration) {
+          let id = 0;
+          try {
+            if (this.disposed || !this.ctx || this.ctx.state === 'closed' || !this.output) return null;
+            if (Object.keys(this.voices).length >= COMMON_SYNTH_MAX_VOICES) return null;
+            const safe = createCommonSynthParams(params);
+            let gate = 1.5;
+            if (typeof duration === 'number' && Number.isFinite(duration) && duration > 0) {
+              gate = Math.min(12, Math.max(0.02, duration));
+            }
+            const ctx = this.ctx;
+            const time = ctx.currentTime + 0.005;
+            const noteFreq = commonSynthNoteFrequency(safe, noteVal);
+            const osc1Base = commonSynthClampFreq(noteFreq * Math.pow(2, safe.osc1Octave));
+            const useFm = safe.mode !== 'sampler' && safe.fmEnabled && safe.fmLevel > 0 && safe.fmIndex > 0 && safe.osc1Level > 0;
+            const modBase = useFm ? commonSynthClampFreq(osc1Base * safe.fmRatio) : 0;
+            const nodes = [];
+            const sources = [];
+            const mix = ctx.createGain();
+            mix.gain.value = 1;
+            nodes.push(mix);
+            let osc1 = null;
+            if (safe.osc1Level > 0) {
+              osc1 = ctx.createOscillator();
+              try { osc1.type = safe.osc1Wave; } catch (err) { osc1.type = 'sine'; }
+              const glide1 = this.prevFreq > 0 ? commonSynthClampFreq(this.prevFreq * Math.pow(2, safe.osc1Octave)) : 0;
+              commonSynthSchedulePitch(osc1.frequency, time, gate, safe, osc1Base, glide1);
+              const osc1Gain = ctx.createGain();
+              osc1Gain.gain.value = safe.osc1Level;
+              osc1.connect(osc1Gain);
+              osc1Gain.connect(mix);
+              nodes.push(osc1, osc1Gain);
+              sources.push(osc1);
+            }
+            if (safe.osc2Level > 0) {
+              const osc2 = ctx.createOscillator();
+              try { osc2.type = safe.osc2Wave; } catch (err) { osc2.type = 'sine'; }
+              const osc2Base = commonSynthClampFreq(noteFreq * Math.pow(2, safe.osc2Octave));
+              const glide2 = this.prevFreq > 0 ? commonSynthClampFreq(this.prevFreq * Math.pow(2, safe.osc2Octave)) : 0;
+              commonSynthSchedulePitch(osc2.frequency, time, gate, safe, osc2Base, glide2);
+              osc2.detune.setValueAtTime(safe.osc2Detune, time);
+              const osc2Gain = ctx.createGain();
+              osc2Gain.gain.value = safe.osc2Level;
+              osc2.connect(osc2Gain);
+              osc2Gain.connect(mix);
+              nodes.push(osc2, osc2Gain);
+              sources.push(osc2);
+            }
+            if (safe.noiseLevel > 0) {
+              const seconds = Math.min(12, gate + safe.release + 0.1);
+              const length = Math.max(1, Math.floor((ctx.sampleRate || 44100) * seconds));
+              const buffer = ctx.createBuffer(1, length, ctx.sampleRate || 44100);
+              const data = buffer.getChannelData(0);
+              for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+              const noise = ctx.createBufferSource();
+              noise.buffer = buffer;
+              const noiseGain = ctx.createGain();
+              noiseGain.gain.value = safe.noiseLevel;
+              noise.connect(noiseGain);
+              noiseGain.connect(mix);
+              nodes.push(noise, noiseGain);
+              sources.push(noise);
+            }
+            let fmGain = null;
+            if (useFm && osc1) {
+              const mod = ctx.createOscillator();
+              try { mod.type = safe.fmWave; } catch (err) { mod.type = 'sine'; }
+              const glideMod = this.prevFreq > 0 ? commonSynthClampFreq(this.prevFreq * Math.pow(2, safe.osc1Octave) * safe.fmRatio) : 0;
+              commonSynthSchedulePitch(mod.frequency, time, gate, safe, modBase, glideMod);
+              fmGain = ctx.createGain();
+              fmGain.gain.value = 0;
+              const depth = safe.fmIndex * modBase * safe.fmLevel;
+              commonSynthScheduleFm(fmGain.gain, time, gate, safe.fmAttack, safe.fmDecay, safe.fmSustain, safe.fmRelease, depth);
+              mod.connect(fmGain);
+              fmGain.connect(osc1.frequency);
+              nodes.push(mod, fmGain);
+              sources.push(mod);
+            }
+            if (!sources.length) {
+              try { mix.disconnect(); } catch (err) {}
+              return null;
+            }
+            let tail = mix;
+            if (safe.filterType !== 'none') {
+              const filter = ctx.createBiquadFilter();
+              filter.type = safe.filterType;
+              const cutoff = commonSynthClampFilterFreq(ctx, safe.cutoff);
+              filter.frequency.setValueAtTime(cutoff, time);
+              filter.Q.setValueAtTime(Math.max(0.0001, safe.q), time);
+              if (safe.filterEnv) {
+                const dropped = commonSynthClampFilterFreq(ctx, cutoff * safe.filterEnvDrop);
+                if (Math.abs(dropped - cutoff) > 1) {
+                  filter.frequency.exponentialRampToValueAtTime(dropped, time + gate);
+                }
+              }
+              tail.connect(filter);
+              tail = filter;
+              nodes.push(filter);
+            }
+            if (safe.drive > 0) {
+              const shaper = ctx.createWaveShaper();
+              shaper.curve = commonSynthDriveCurve(safe.drive);
+              shaper.oversample = 'none';
+              tail.connect(shaper);
+              tail = shaper;
+              nodes.push(shaper);
+            }
+            const amp = ctx.createGain();
+            const envEnd = commonSynthScheduleAmp(amp.gain, time, gate, safe.attack, safe.decayTime, safe.sustain, safe.release);
+            const level = ctx.createGain();
+            level.gain.value = Math.max(0, Math.min(0.8, safe.outputGain));
+            tail.connect(amp);
+            amp.connect(level);
+            level.connect(this.output);
+            nodes.push(amp, level);
+            const stopAt = Math.max(envEnd, time + gate) + 0.03;
+            id = this.nextId++;
+            const voice = {
+              id: id,
+              nodes: nodes,
+              sources: sources,
+              amp: amp,
+              fmGain: fmGain,
+              released: false,
+              stopping: false,
+              timer: 0
+            };
+            this.voices[id] = voice;
+            this.prevFreq = noteFreq;
+            const engine = this;
+            const release = function () { engine._releaseVoice(id); };
+            for (let i = 0; i < sources.length; i++) {
+              sources[i].onended = release;
+              sources[i].start(time);
+              sources[i].stop(stopAt);
+            }
+            voice.timer = setTimeout(release, Math.max(100, (stopAt - ctx.currentTime) * 1000 + 80));
+            return { id: id, stop: function () { engine._stopVoice(id); } };
+          } catch (err) {
+            if (id) this._releaseVoice(id);
+            return null;
+          }
+        }
+
+        _stopVoice(id) {
+          const voice = this.voices[id];
+          if (!voice || voice.stopping || voice.released) return;
+          voice.stopping = true;
+          const ctx = this.ctx;
+          const engine = this;
+          if (!ctx || ctx.state === 'closed') {
+            this._releaseVoice(id);
+            return;
+          }
+          const t = ctx.currentTime + 0.001;
+          const end = t + 0.03;
+          if (voice.amp) {
+            try {
+              voice.amp.gain.cancelScheduledValues(t);
+              voice.amp.gain.setValueAtTime(Math.max(0.0001, voice.amp.gain.value), t);
+              voice.amp.gain.exponentialRampToValueAtTime(0.0001, end);
+            } catch (err) {}
+          }
+          if (voice.fmGain) {
+            try {
+              voice.fmGain.gain.cancelScheduledValues(t);
+              voice.fmGain.gain.setValueAtTime(Math.max(0, voice.fmGain.gain.value), t);
+              voice.fmGain.gain.linearRampToValueAtTime(0, end);
+            } catch (err) {}
+          }
+          const sources = voice.sources || [];
+          for (let i = 0; i < sources.length; i++) {
+            try { sources[i].stop(end + 0.02); } catch (err) {}
+          }
+          if (voice.timer) clearTimeout(voice.timer);
+          voice.timer = setTimeout(function () { engine._releaseVoice(id); }, 90);
+        }
+
+        _releaseVoice(id) {
+          const voice = this.voices[id];
+          if (!voice || voice.released) return;
+          voice.released = true;
+          if (voice.timer) {
+            clearTimeout(voice.timer);
+            voice.timer = 0;
+          }
+          const sources = voice.sources || [];
+          for (let i = 0; i < sources.length; i++) {
+            try { sources[i].onended = null; } catch (err) {}
+            try { sources[i].stop(); } catch (err) {}
+          }
+          const nodes = voice.nodes || [];
+          for (let i = 0; i < nodes.length; i++) {
+            try { nodes[i].disconnect(); } catch (err) {}
+          }
+          voice.nodes = [];
+          voice.sources = [];
+          delete this.voices[id];
+        }
+
+        stopAll() {
+          if (!this.voices) return;
+          const ids = Object.keys(this.voices);
+          for (let i = 0; i < ids.length; i++) this._stopVoice(ids[i]);
+        }
+
+        dispose() {
+          if (this.disposed) return;
+          this.disposed = true;
+          try { this.stopAll(); } catch (err) {}
+          const ids = this.voices ? Object.keys(this.voices) : [];
+          for (let i = 0; i < ids.length; i++) this._releaseVoice(ids[i]);
+          try { if (this.output) this.output.disconnect(); } catch (err) {}
+          try { if (this.compressor) this.compressor.disconnect(); } catch (err) {}
+          this.output = null;
+          this.compressor = null;
+          this.ctx = null;
+          this.voices = Object.create(null);
+        }
+      }
+
+      function registerFmBellTest() {
+        const seeded = createCommonSynthParams({
+          name: 'FM BELL TEST',
+          mode: 'synth',
+          osc1Wave: 'sine',
+          osc1Level: 0.8,
+          osc2Level: 0,
+          fmEnabled: true,
+          fmWave: 'sine',
+          fmRatio: 2,
+          fmIndex: 5,
+          fmLevel: 0.5,
+          fmAttack: 0.005,
+          fmDecay: 1.2,
+          fmSustain: 0,
+          fmRelease: 0.5,
+          attack: 0.005,
+          decayTime: 1.5,
+          sustain: 0,
+          release: 0.5,
+          filterType: 'lowpass',
+          cutoff: 10000,
+          q: 0.7,
+          drive: 0
+        });
+        return registerCommonSynthVoice(COMMON_SYNTH_BELL_ID, seeded);
+      }
+
+      const commonSynthBellRegistration = registerFmBellTest();
+
+      if (typeof window !== 'undefined') {
+        window.CommonSynth = {
+          Engine: CommonSynthEngine,
+          bellId: COMMON_SYNTH_BELL_ID,
+          sharedContext: function () {
+            try {
+              if (sound && sound.ctx && sound.ctx.state !== 'closed') return sound.ctx;
+            } catch (err) {}
+            return null;
+          },
+          create: function (audioContext) {
+            try {
+              const ctx = audioContext || window.CommonSynth.sharedContext();
+              if (!ctx || ctx.state === 'closed') return null;
+              return new CommonSynthEngine(ctx);
+            } catch (err) {
+              return null;
+            }
+          },
+          getBell: function () {
+            return getCommonSynthVoice(COMMON_SYNTH_BELL_ID);
+          }
+        };
+      }
+
+      (function selfCheckCommonSynthEngine() {
+        try {
+          const errors = [];
+          const expect = function (cond, msg) { if (!cond) errors.push(msg); };
+          const bell = getCommonSynthVoice(COMMON_SYNTH_BELL_ID);
+          expect(!!commonSynthBellRegistration.ok, 'FMベルの登録');
+          expect(!!bell && bell.name === 'FM BELL TEST', 'FMベルの名前');
+          expect(!!bell && bell.fmEnabled === true && bell.fmWave === 'sine' && bell.fmRatio === 2 && bell.fmIndex === 5 && bell.fmLevel === 0.5, 'FMベルの変調');
+          expect(!!bell && bell.osc1Wave === 'sine' && bell.osc1Level === 0.8 && bell.osc2Level === 0, 'FMベルのオシレーター');
+          expect(!!bell && bell.drive === 0 && bell.filterType === 'lowpass' && bell.cutoff === 10000, 'FMベルのフィルター');
+          expect(!!bell && bell.fixedFreq === null && bell.scale && bell.scale[0] === 0, 'FMベルの音程初期値');
+          const silent = new CommonSynthEngine(null);
+          expect(silent.play(bell, 12, 1) === null, 'AudioContextなしでは発音しない');
+          silent.stopAll();
+          silent.stopAll();
+          silent.dispose();
+          silent.dispose();
+          expect(silent.play(bell, 12, 1) === null, '破棄後は発音しない');
+          expect(typeof window === 'undefined' || (!!window.CommonSynth && window.CommonSynth.sharedContext() === null), '起動時は既存Contextを待たない');
+          if (errors.length > 0) console.error('共通シンセエンジン検査に失敗:', errors);
+        } catch (err) {
+          console.error('共通シンセエンジン検査に失敗:', err);
+        }
+      })();
 
       // =========================================================================
       // 3. SCHEDULER & RECORDING
@@ -621,20 +2074,33 @@
         if (changed) updateSessionPadVisuals();
       }
 
+      // ★ トラックごとの回転速度（speed: 0.25 → 4小節で1周）
+      function getTrackDiv(t) {
+        const s = activeGenre.tracks[t].speed;
+        return (s && s > 0 && s < 1) ? Math.round(1 / s) : 1;
+      }
+
       function scheduleStep(step, time) {
         if (step === 0) {
           lastScheduledBarStart = time;
+          barCounter++;
           applyQueuedClips();
 
           if (recState === 'armed') startMediaRecording(time);
           else if (recState === 'recording') stopMediaRecording();
         }
 
+        const absStep = Math.max(0, barCounter) * STEPS_PER_BAR + step;
+
         for (let t = 0; t < 5; t++) {
           const activeClip = sessionClips[t].find(c => c.active);
           if (!activeClip) continue;
 
-          const hits = activeClip.tokens.filter(tok => tok.step === step);
+          const div = getTrackDiv(t);
+          if (absStep % div !== 0) continue;
+          const trackStep = Math.floor(absStep / div) % STEPS_PER_BAR;
+
+          const hits = activeClip.tokens.filter(tok => tok.step === trackStep);
           for (const tok of hits) {
             sound.triggerTrack(t, time, tok.radius, activeClip);
           }
@@ -658,6 +2124,7 @@
         if (isPlaying) return;
         isPlaying = true;
         currentStep = 0;
+        barCounter = -1;
         const now = sound.ctx ? sound.ctx.currentTime + 0.03 : 0;
         nextNoteTime = now;
         lastScheduledBarStart = now;
@@ -764,6 +2231,27 @@
       // =========================================================================
       // 4. GENRE SWITCHER
       // =========================================================================
+
+       async function loadDefaultSamples(key) {
+        const list = DEFAULT_SAMPLES[key];
+        if (!list) return;
+        sound.ensureContext();
+        for (const item of list) {
+          try {
+            const res = await fetch(item.url);
+            if (!res.ok) throw new Error(item.url + ' が見つかりません');
+            const arrBuf = await res.arrayBuffer();
+            const decoded = await sound.ctx.decodeAudioData(arrBuf);
+            const clip = sessionClips[item.track][item.row];
+            clip.audioBuffer = decoded;
+            if (clip.tokens.length === 0) clip.tokens.push({ step: 0, radius: 0.5 });
+            updateSessionPadVisuals();
+          } catch (e) {
+            console.error('初期サンプル読み込みエラー:', e);
+          }
+        }
+      }
+
       function setGenre(key) {
         if (!GENRE_PRESETS[key]) return;
         currentGenreKey = key;
@@ -781,9 +2269,10 @@
         });
 
         syncBpmUI();
+        paintBackgroundChassis();
         buildSessionUI();
         renderKnobPanel();
-        paintBackgroundChassis();
+        loadDefaultSamples(key);
       }
 
       document.querySelectorAll('.genre-tab').forEach(tab => {
@@ -796,6 +2285,7 @@
       const trackHeadersEl = document.getElementById('track-headers');
       const sessionGridEl = document.getElementById('session-grid');
       const miniDiscItems = [];
+
 
       function buildSessionUI() {
         trackHeadersEl.innerHTML = '';
@@ -1139,6 +2629,31 @@
         return { step, radius: normRadius };
       }
 
+      // =========================================================================
+      // ★ 音階にカクカク止まる（スナップ）＋ 音程を変えたら音が鳴る
+      //   対象：音階が2音以上あるトラック（WEIRD以外）。キックやハイハットは今まで通り滑らか。
+      //   トラック定義に snap: false と書くと、そのトラックだけスナップを切れます。
+      // =========================================================================
+      function isSnapTrack(def) {
+        if (def.snap !== undefined) return def.snap;
+        return def.scale.length > 1 && def.synthType !== 'weird';
+      }
+      function radiusToIndex(r, len) {
+        return Math.min(len - 1, Math.max(0, Math.floor((1 - r) * len)));
+      }
+      function snapRadius(r, len) {
+        return 1 - (radiusToIndex(r, len) + 0.5) / len;
+      }
+      let lastPreviewAt = 0;
+      function previewNote(radius, clip) {
+        if (!sound.ctx) return;
+        const nowMs = performance.now();
+        if (nowMs - lastPreviewAt < 60) return;   // 速く動かした時に鳴りすぎない
+        lastPreviewAt = nowMs;
+        sound.triggerTrack(selectedTrack, sound.ctx.currentTime, radius, clip);
+      }
+
+
       let draggedToken = null;
       let pointerDownPos = null;
       let didDragMove = false;
@@ -1175,16 +2690,26 @@
         if (draggedToken && didDragMove) {
           const polar = coordsToDiscPolar(pos.x, pos.y);
           if (polar) {
-            draggedToken.step = polar.step;
-            draggedToken.radius = polar.radius;
+            const def = activeGenre.tracks[selectedTrack];
+            if (isSnapTrack(def)) {
+              const len = def.scale.length;
+              const newRadius = snapRadius(polar.radius, len);
+              const changed = radiusToIndex(newRadius, len) !== radiusToIndex(draggedToken.radius, len);
+              draggedToken.step = polar.step;
+              draggedToken.radius = newRadius;
+              if (changed) previewNote(newRadius, sessionClips[selectedTrack][selectedRow]);
+            } else {
+              draggedToken.step = polar.step;
+              draggedToken.radius = polar.radius;
+            }
           }
         }
       }
-
+ 
       function handleDiscUp() {
         if (!pointerDownPos) return;
         const clip = sessionClips[selectedTrack][selectedRow];
-
+ 
         if (!didDragMove) {
           if (draggedToken) {
             const idx = clip.tokens.indexOf(draggedToken);
@@ -1192,14 +2717,20 @@
           } else {
             const polar = coordsToDiscPolar(pointerDownPos.x, pointerDownPos.y);
             if (polar) {
-              const existingIdx = clip.tokens.findIndex(t => t.step === polar.step && Math.abs(t.radius - polar.radius) < 0.08);
+              const def = activeGenre.tracks[selectedTrack];
+              const snap = isSnapTrack(def);
+              const len = def.scale.length;
+              const radius = snap ? snapRadius(polar.radius, len) : polar.radius;
+              const existingIdx = clip.tokens.findIndex(t => t.step === polar.step && (snap
+                ? radiusToIndex(t.radius, len) === radiusToIndex(radius, len)
+                : Math.abs(t.radius - radius) < 0.08));
               if (existingIdx >= 0) {
                 clip.tokens.splice(existingIdx, 1);
               } else {
-                clip.tokens.push({ step: polar.step, radius: polar.radius });
+                clip.tokens.push({ step: polar.step, radius });
                 if (!isPlaying) clip.active = true;
                 const now = sound.ctx.currentTime;
-                sound.triggerTrack(selectedTrack, now, polar.radius, clip);
+                sound.triggerTrack(selectedTrack, now, radius, clip);
               }
             }
           }
@@ -1232,7 +2763,13 @@
         for (let t = 0; t < 5; t++) {
           const hasActive = sessionClips[t].some(c => c.active);
           if (hasActive || (recState === 'recording' && t === selectedTrack)) {
-            trackSpinPhase[t] = phase;
+            const div = getTrackDiv(t);
+            if (div > 1) {
+              const total = Math.max(0, barCounter) + elapsedInBar / barSec;
+              trackSpinPhase[t] = (((total % div) + div) % div) / div;
+            } else {
+              trackSpinPhase[t] = phase;
+            }
           }
         }
       }
