@@ -41,14 +41,14 @@
 
     .mini-disc-canvas { display: block; pointer-events: none; }
 
-    .knob-panel { display: flex; flex-direction: row; align-items: center; justify-content: space-around; padding: 4px 8px; gap: 4px; }
-    @media (orientation: landscape) and (min-width: 520px) { .knob-panel { flex-direction: column; padding: 8px 4px; } }
+    .knob-panel { display: flex; flex-direction: row; align-items: center; justify-content: space-around; padding: 4px 6px; gap: 3px; }
+    @media (orientation: landscape) and (min-width: 520px) { .knob-panel { flex-direction: column; padding: 6px 4px; } }
     .knob-unit { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 100%; }
-    .rotary-knob { position: relative; width: 44px; height: 44px; border-radius: 50%; cursor: ns-resize; touch-action: none; background: #111111; border: 2px solid #383838; }
-    @media (orientation: landscape) and (min-width: 520px) { .rotary-knob { width: 48px; height: 48px; } }
+    .rotary-knob { position: relative; width: 40px; height: 40px; border-radius: 50%; cursor: ns-resize; touch-action: none; background: #111111; border: 2px solid #383838; }
+    @media (orientation: landscape) and (min-width: 520px) { .rotary-knob { width: 44px; height: 44px; } }
     .knob-ring-svg { position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px); pointer-events: none; }
-    .knob-pointer { position: absolute; top: 4px; left: 50%; width: 3px; height: 14px; margin-left: -1.5px; border-radius: 2px; transform-origin: 50% 16px; pointer-events: none; background: var(--c-accent); }
-    @media (orientation: landscape) and (min-width: 520px) { .knob-pointer { height: 15px; transform-origin: 50% 18px; } }
+    .knob-pointer { position: absolute; top: 3px; left: 50%; width: 3px; height: 13px; margin-left: -1.5px; border-radius: 2px; transform-origin: 50% 15px; pointer-events: none; background: var(--c-accent); }
+    @media (orientation: landscape) and (min-width: 520px) { .knob-pointer { height: 14px; transform-origin: 50% 17px; } }
     .knob-label { font-size: 8px; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase; text-align: center; line-height: 1; color: #888888; }
 
     .mode-badge { font-size: 7px; font-weight: 900; padding: 2px 4px; border-radius: 4px; text-transform: uppercase; border: 1.5px solid #333333; color: #888888; background: #111111; cursor: pointer; }
@@ -83,7 +83,6 @@
 </head>
 <body>
   <div id="app-chassis">
-    <!-- ジャンル切替タブ -->
     <header class="genre-bar">
       <button class="genre-tab active" data-genre="techno">TECHNO</button>
       <button class="genre-tab" data-genre="dnb">DNB</button>
@@ -132,20 +131,13 @@
 
   <script>
     (() => {
-      // =========================================================================
-      // 1. GENRE PRESETS (Techno / DnB / SynthWave)
-      // =========================================================================
-
-      // 録音・ピッチ変化サンプラー用初期サンプル（track, row, url）
       const DEFAULT_SAMPLES = {
         techno: [ { track: 4, row: 0, url: 'samples/techno_voice.mp3' } ]
       };
 
-      // 円の中心からの距離(0..1)で分ける4ドラム音色（あなたがURLを割り当てて使用）
-      // radius を 4分割: 0.00〜0.25 -> 0, 0.25〜0.50 -> 1, 0.50〜0.75 -> 2, 0.75〜1.00 -> 3
       const DRUM_SLOT_CONFIG = {
         techno: {
-          track: 0, // 909Kit
+          track: 0,
           slots: [
             { name: 'KICK',  url: 'samples/909_kick.wav' },
             { name: 'SNARE', url: 'samples/909_snare.wav' },
@@ -154,7 +146,7 @@
           ]
         },
         dnb: {
-          track: 4, // BREAK KIT
+          track: 4,
           slots: [
             { name: 'KICK',        url: 'samples/break_kick.wav' },
             { name: 'SNARE',       url: 'samples/break_snare.wav' },
@@ -163,7 +155,7 @@
           ]
         },
         synthwave: {
-          track: 4, // RETRO DRUM KIT
+          track: 4,
           slots: [
             { name: 'RETRO KICK',  url: 'samples/retro_kick.wav' },
             { name: 'RETRO SNARE', url: 'samples/retro_snare.wav' },
@@ -244,16 +236,15 @@
 
       const trackSpinPhase = [0, 0, 0, 0, 0];
 
-      // 各トラックのノブエフェクト値（CUTOFF / RESO / DRIVE）
+      // 各トラックのノブ値（CUTOFF / RESO / DRIVE / VOL）
       const trackParams = [
-        { cutoff: 0.65, reso: 0.5, decay: 0.5, drive: 0.25 },
-        { cutoff: 0.50, reso: 0.4, decay: 0.4, drive: 0.15 },
-        { cutoff: 0.75, reso: 0.6, decay: 0.6, drive: 0.30 },
-        { cutoff: 0.60, reso: 0.5, decay: 0.5, drive: 0.20 },
-        { cutoff: 0.70, reso: 0.4, decay: 0.7, drive: 0.10 }
+        { cutoff: 0.65, reso: 0.5, decay: 0.5, drive: 0.25, volume: 0.8 },
+        { cutoff: 0.50, reso: 0.4, decay: 0.4, drive: 0.15, volume: 0.8 },
+        { cutoff: 0.75, reso: 0.6, decay: 0.6, drive: 0.30, volume: 0.8 },
+        { cutoff: 0.60, reso: 0.5, decay: 0.5, drive: 0.20, volume: 0.8 },
+        { cutoff: 0.70, reso: 0.4, decay: 0.7, drive: 0.10, volume: 0.8 }
       ];
 
-      // クリップデータ (5トラック × 4行)
       const sessionClips = Array.from({ length: 5 }, () =>
         Array.from({ length: 4 }, () => ({
           tokens: [],
@@ -269,8 +260,7 @@
       // 2. MODULAR AUDIO ENGINE & CUSTOM SYNTH ENGINES
       // =========================================================================
       const SYNTH_ENGINES = {
-        // Techno: METAL PERC（金属打撃音・工業的パーカッション）
-        metal: (engine, tIdx, time, radius, noteVal, p) => {
+        metal: (engine, tIdx, time, radius, noteVal, p, _def, dest) => {
           const ctx = engine.ctx;
           const baseFreq = 440 * Math.pow(2, (noteVal + 7 - 9) / 12) * (0.8 + radius * 0.6);
           const dur = 0.06 + (1 - p.cutoff * 0.4) * 0.22;
@@ -294,7 +284,7 @@
             bp.connect(shaper);
             outNode = shaper;
           }
-          outNode.connect(engine.masterGain);
+          outNode.connect(dest);
 
           ratios.forEach((r, idx) => {
             const osc = ctx.createOscillator();
@@ -304,11 +294,11 @@
             osc.connect(mix);
             osc.start(time);
             osc.stop(time + dur + 0.02);
+            engine.trackVoice(tIdx, osc, mix);
           });
         },
 
-        // Techno: WEIRD（既存音源を維持）
-        weird: (engine, tIdx, time, radius, noteVal, p) => {
+        weird: (engine, tIdx, time, radius, noteVal, p, _def, dest) => {
           const ctx = engine.ctx;
           const dur = 0.08 + p.decay * 0.45;
           const baseFreq = 180 + radius * 1100;
@@ -341,16 +331,16 @@
           }
 
           node.connect(gain);
-          gain.connect(engine.masterGain);
+          gain.connect(dest);
 
           osc.start(time);
           lfo.start(time);
           osc.stop(time + dur + 0.02);
           lfo.stop(time + dur + 0.02);
+          engine.trackVoice(tIdx, osc, gain, lfo);
         },
 
-        // DnB: REESE BASS（Saw×2、Detune、Low-pass、LFO）
-        reese: (engine, tIdx, time, radius, noteVal, p) => {
+        reese: (engine, tIdx, time, radius, noteVal, p, _def, dest) => {
           const ctx = engine.ctx;
           const freq = 440 * Math.pow(2, (noteVal - 9) / 12);
           const stepDur = (60 / bpm) / 4;
@@ -383,7 +373,7 @@
             gain.connect(shaper);
             outNode = shaper;
           }
-          outNode.connect(engine.masterGain);
+          outNode.connect(dest);
 
           [-14, 14].forEach((det) => {
             const osc = ctx.createOscillator();
@@ -393,13 +383,14 @@
             osc.connect(lp);
             osc.start(time);
             osc.stop(time + dur + 0.03);
+            engine.trackVoice(tIdx, osc, gain);
           });
           lfo.start(time);
           lfo.stop(time + dur + 0.03);
+          engine.trackVoice(tIdx, lfo, null);
         },
 
-        // DnB: NEURO GROWL（Saw＋Square、FM、Band-pass、Drive）
-        neuro: (engine, tIdx, time, radius, noteVal, p) => {
+        neuro: (engine, tIdx, time, radius, noteVal, p, _def, dest) => {
           const ctx = engine.ctx;
           const freq = 440 * Math.pow(2, (noteVal - 9) / 12);
           const stepDur = (60 / bpm) / 4;
@@ -440,7 +431,7 @@
           subSquare.connect(bp);
           bp.connect(shaper);
           shaper.connect(gain);
-          gain.connect(engine.masterGain);
+          gain.connect(dest);
 
           carrier.start(time);
           subSquare.start(time);
@@ -448,10 +439,12 @@
           carrier.stop(time + dur + 0.03);
           subSquare.stop(time + dur + 0.03);
           fmOsc.stop(time + dur + 0.03);
+          engine.trackVoice(tIdx, carrier, gain);
+          engine.trackVoice(tIdx, subSquare, gain);
+          engine.trackVoice(tIdx, fmOsc, null);
         },
 
-        // DnB: LIQUID PAD（Saw＋Sine、Unison、長いADSR）
-        liquid_pad: (engine, tIdx, time, radius, noteVal, p) => {
+        liquid_pad: (engine, tIdx, time, radius, noteVal, p, _def, dest) => {
           const ctx = engine.ctx;
           const freq = 440 * Math.pow(2, (noteVal - 9) / 12);
           const stepDur = (60 / bpm) / 4;
@@ -469,7 +462,7 @@
           gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
 
           lp.connect(gain);
-          gain.connect(engine.masterGain);
+          gain.connect(dest);
 
           const configs = [
             { type: 'sawtooth', det: -10, amp: 0.35 },
@@ -487,11 +480,11 @@
             g.connect(lp);
             osc.start(time);
             osc.stop(time + dur + 0.04);
+            engine.trackVoice(tIdx, osc, gain);
           });
         },
 
-        // DnB: RAZOR LEAD（Saw＋Square、短いDecay、軽いUnison）
-        razor_lead: (engine, tIdx, time, radius, noteVal, p) => {
+        razor_lead: (engine, tIdx, time, radius, noteVal, p, _def, dest) => {
           const ctx = engine.ctx;
           const freq = 440 * Math.pow(2, (noteVal + 12 - 9) / 12);
           const stepDur = (60 / bpm) / 4;
@@ -517,7 +510,7 @@
             gain.connect(shaper);
             outNode = shaper;
           }
-          outNode.connect(engine.masterGain);
+          outNode.connect(dest);
 
           [
             { type: 'sawtooth', det: -7 },
@@ -531,11 +524,11 @@
             osc.connect(lp);
             osc.start(time);
             osc.stop(time + dur + 0.03);
+            engine.trackVoice(tIdx, osc, gain);
           });
         },
 
-        // SynthWave: RETRO BASS（太く丸いアナログベース）
-        retro_bass: (engine, tIdx, time, radius, noteVal, p) => {
+        retro_bass: (engine, tIdx, time, radius, noteVal, p, _def, dest) => {
           const ctx = engine.ctx;
           const freq = 440 * Math.pow(2, (noteVal - 9) / 12);
           const stepDur = (60 / bpm) / 4;
@@ -561,7 +554,7 @@
             gain.connect(shaper);
             outNode = shaper;
           }
-          outNode.connect(engine.masterGain);
+          outNode.connect(dest);
 
           ['sawtooth', 'triangle'].forEach((w, i) => {
             const osc = ctx.createOscillator();
@@ -570,11 +563,11 @@
             osc.connect(lp);
             osc.start(time);
             osc.stop(time + dur + 0.03);
+            engine.trackVoice(tIdx, osc, gain);
           });
         },
 
-        // SynthWave: NEON LEAD（太いSaw系メロディ）
-        neon_lead: (engine, tIdx, time, radius, noteVal, p) => {
+        neon_lead: (engine, tIdx, time, radius, noteVal, p, _def, dest) => {
           const ctx = engine.ctx;
           const freq = 440 * Math.pow(2, (noteVal + 12 - 9) / 12);
           const stepDur = (60 / bpm) / 4;
@@ -598,7 +591,7 @@
             gain.connect(shaper);
             outNode = shaper;
           }
-          outNode.connect(engine.masterGain);
+          outNode.connect(dest);
 
           [-9, 9].forEach((det) => {
             const osc = ctx.createOscillator();
@@ -608,11 +601,11 @@
             osc.connect(lp);
             osc.start(time);
             osc.stop(time + dur + 0.03);
+            engine.trackVoice(tIdx, osc, gain);
           });
         },
 
-        // SynthWave: DREAM PAD（広がりのある幻想的な背景音）
-        dream_pad: (engine, tIdx, time, radius, noteVal, p) => {
+        dream_pad: (engine, tIdx, time, radius, noteVal, p, _def, dest) => {
           const ctx = engine.ctx;
           const freq = 440 * Math.pow(2, (noteVal - 9) / 12);
           const stepDur = (60 / bpm) / 4;
@@ -629,7 +622,7 @@
           gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
 
           lp.connect(gain);
-          gain.connect(engine.masterGain);
+          gain.connect(dest);
 
           [-12, 0, 12].forEach((det, idx) => {
             const osc = ctx.createOscillator();
@@ -639,11 +632,11 @@
             osc.connect(lp);
             osc.start(time);
             osc.stop(time + dur + 0.04);
+            engine.trackVoice(tIdx, osc, gain);
           });
         },
 
-        // SynthWave: DIGITAL PIANO（DX系の透明感あるエレピ）
-        digital_piano: (engine, tIdx, time, radius, noteVal, p) => {
+        digital_piano: (engine, tIdx, time, radius, noteVal, p, _def, dest) => {
           const ctx = engine.ctx;
           const freq = 440 * Math.pow(2, (noteVal + 12 - 9) / 12);
           const stepDur = (60 / bpm) / 4;
@@ -681,12 +674,14 @@
             gain.connect(shaper);
             outNode = shaper;
           }
-          outNode.connect(engine.masterGain);
+          outNode.connect(dest);
 
           carrier.start(time);
           mod.start(time);
           carrier.stop(time + dur + 0.03);
           mod.stop(time + dur + 0.03);
+          engine.trackVoice(tIdx, carrier, gain);
+          engine.trackVoice(tIdx, mod, null);
         }
       };
 
@@ -694,6 +689,7 @@
         constructor() {
           this.ctx = null;
           this.masterGain = null;
+          this.trackGains = [];
           this.prevFreqs = [110, 110, 110, 110, 110];
           this.trackActiveVoices = Array.from({ length: 5 }, () => ({ batchTime: -1, nodes: [] }));
           this.sampleBuffers = { mallet: null, kalimba: null };
@@ -707,12 +703,31 @@
               this.masterGain = this.ctx.createGain();
               this.masterGain.gain.value = 0.85;
               this.masterGain.connect(this.ctx.destination);
+
+              this.trackGains = trackParams.map((tp) => {
+                const tg = this.ctx.createGain();
+                tg.gain.value = tp.volume;
+                tg.connect(this.masterGain);
+                return tg;
+              });
+
               this.generateDefaultSamples();
             }
             if (this.ctx.state === 'suspended') {
               this.ctx.resume();
             }
+            this.syncTrackVolumes();
           } catch (_) {}
+        }
+
+        syncTrackVolumes() {
+          if (!this.ctx || !this.trackGains.length) return;
+          const now = this.ctx.currentTime;
+          for (let t = 0; t < this.trackGains.length; t++) {
+            const g = this.trackGains[t].gain;
+            g.cancelScheduledValues(now);
+            g.setTargetAtTime(trackParams[t].volume, now, 0.01);
+          }
         }
 
         generateDefaultSamples() {
@@ -753,15 +768,33 @@
           return curve;
         }
 
+        trackVoice(tIdx, src, gain) {
+          const entry = { src, gain, stopped: false };
+          this.trackActiveVoices[tIdx].nodes.push(entry);
+          src.onended = () => {
+            entry.stopped = true;
+            const list = this.trackActiveVoices[tIdx].nodes;
+            const idx = list.indexOf(entry);
+            if (idx !== -1) list.splice(idx, 1);
+          };
+        }
+
         handleVoiceStealing(tIdx, time) {
           const voiceState = this.trackActiveVoices[tIdx];
+          // 完了済みノードを掃除
+          voiceState.nodes = voiceState.nodes.filter(v => !v.stopped);
+
           if (Math.abs(time - voiceState.batchTime) > 0.005) {
             const stopTime = Math.max(this.ctx.currentTime, time);
             for (const v of voiceState.nodes) {
+              if (v.stopped) continue;
+              v.stopped = true;
               try {
-                v.gain.gain.setValueAtTime(v.gain.gain.value, stopTime);
-                v.gain.gain.linearRampToValueAtTime(0.0001, stopTime + 0.006);
-                v.src.stop(stopTime + 0.008);
+                if (v.gain) {
+                  v.gain.gain.cancelScheduledValues(stopTime);
+                  v.gain.gain.setTargetAtTime(0.0001, stopTime, 0.003);
+                }
+                v.src.stop(stopTime + 0.012);
               } catch (_) {}
             }
             voiceState.nodes = [];
@@ -773,6 +806,7 @@
           if (!this.ctx) return;
           const def = activeGenre.tracks[tIdx];
           const p = trackParams[tIdx];
+          const dest = this.trackGains[tIdx] || this.masterGain;
 
           const scale = def.scale;
           const scaleIdx = Math.min(scale.length - 1, Math.floor((1 - radius) * scale.length));
@@ -825,28 +859,30 @@
 
             src.connect(filter);
             lastNode.connect(gainNode);
-            gainNode.connect(this.masterGain);
+            gainNode.connect(dest);
 
             src.start(time);
             src.stop(time + dur + 0.02);
-            this.trackActiveVoices[tIdx].nodes.push({ src, gain: gainNode });
+            this.trackVoice(tIdx, src, gainNode);
           } else {
             if (def.synthType === 'acid') {
-              this.triggerAcid303(tIdx, time, radius, noteVal, p);
+              this.triggerAcid303(tIdx, time, radius, noteVal, p, dest);
             } else if (SYNTH_ENGINES[def.synthType]) {
-              SYNTH_ENGINES[def.synthType](this, tIdx, time, radius, noteVal, p, def);
+              SYNTH_ENGINES[def.synthType](this, tIdx, time, radius, noteVal, p, def, dest);
             }
           }
         }
 
-        triggerAcid303(tIdx, time, radius, freq, p) {
+        triggerAcid303(tIdx, time, radius, freq, p, dest) {
           const stepDur = (60 / bpm) / 4;
           const dur = stepDur * (2.0 + p.decay * 10.0);
 
-          if (this.acidVoice) {
+          if (this.acidVoice && !this.acidVoice.stopped) {
+            this.acidVoice.stopped = true;
             try {
-              this.acidVoice.choke.gain.setTargetAtTime(0, time, 0.004);
-              this.acidVoice.osc.stop(time + 0.04);
+              this.acidVoice.choke.gain.cancelScheduledValues(time);
+              this.acidVoice.choke.gain.setTargetAtTime(0.0001, time, 0.003);
+              this.acidVoice.osc.stop(time + 0.015);
             } catch (_) {}
           }
 
@@ -880,19 +916,28 @@
           filter.connect(shaper);
           shaper.connect(gain);
           gain.connect(choke);
-          choke.connect(this.masterGain);
+          choke.connect(dest);
 
           osc.start(time);
           osc.stop(time + dur + 0.02);
-          this.acidVoice = { osc, choke };
+          const voiceObj = { osc, choke, stopped: false };
+          osc.onended = () => { voiceObj.stopped = true; };
+          this.acidVoice = voiceObj;
         }
 
         stopAllVoices() {
-          for (const vState of this.trackActiveVoices) {
+          for (let t = 0; t < this.trackActiveVoices.length; t++) {
+            const vState = this.trackActiveVoices[t];
             for (const v of vState.nodes) {
+              if (v.stopped) continue;
+              v.stopped = true;
               try { v.src.stop(); } catch (_) {}
             }
             vState.nodes = [];
+          }
+          if (this.acidVoice && !this.acidVoice.stopped) {
+            this.acidVoice.stopped = true;
+            try { this.acidVoice.osc.stop(); } catch (_) {}
           }
         }
       }
@@ -1074,7 +1119,7 @@
 
       function stopMediaRecording() {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
-          try { mediaRecorder.stop(); } catch (_) {}
+          try { mediaRecorder.stop(); } catch(_) {}
         }
       }
 
@@ -1088,16 +1133,14 @@
           for (const item of list) {
             try {
               const res = await fetch(item.url);
-              if (!res.ok) throw new Error(item.url + ' が見つかりません');
+              if (!res.ok) continue;
               const arrBuf = await res.arrayBuffer();
               const decoded = await sound.ctx.decodeAudioData(arrBuf);
               const clip = sessionClips[item.track][item.row];
               clip.audioBuffer = decoded;
               if (clip.tokens.length === 0) clip.tokens.push({ step: 0, radius: 0.5 });
               updateSessionPadVisuals();
-            } catch (e) {
-              console.error('初期サンプル読み込みエラー:', e);
-            }
+            } catch (_) {}
           }
         }
 
@@ -1108,15 +1151,13 @@
             if (!slotDef || !slotDef.url) continue;
             try {
               const res = await fetch(slotDef.url);
-              if (!res.ok) throw new Error(slotDef.url + ' が見つかりません');
+              if (!res.ok) continue;
               const arrBuf = await res.arrayBuffer();
               const decoded = await sound.ctx.decodeAudioData(arrBuf);
               for (let r = 0; r < 4; r++) {
                 sessionClips[drumCfg.track][r].slots[sIdx] = decoded;
               }
-            } catch (e) {
-              console.error('ドラムスロット読み込みエラー:', e);
-            }
+            } catch (_) {}
           }
         }
       }
@@ -1236,6 +1277,19 @@
       }
 
       const knobPanelEl = document.getElementById('knob-panel');
+      let activeKnobDrag = null;
+
+      window.addEventListener('mousemove', (e) => {
+        if (!activeKnobDrag) return;
+        activeKnobDrag.onMove(e.clientY);
+      });
+      window.addEventListener('mouseup', () => { activeKnobDrag = null; });
+      window.addEventListener('touchmove', (e) => {
+        if (!activeKnobDrag || e.touches.length === 0) return;
+        e.preventDefault();
+        activeKnobDrag.onMove(e.touches[0].clientY);
+      }, { passive: false });
+      window.addEventListener('touchend', () => { activeKnobDrag = null; });
 
       function createKnobElement(label, getVal, setVal) {
         const unit = document.createElement('div');
@@ -1286,36 +1340,23 @@
         }
         syncVisual();
 
-        let dragging = false;
-        let startY = 0;
-        let startVal = 0;
-
-        const onStart = (clientY) => {
+        const startDrag = (clientY) => {
           sound.ensureContext();
-          dragging = true; startY = clientY; startVal = getVal();
+          const startVal = getVal();
+          activeKnobDrag = {
+            onMove: (currY) => {
+              const dy = clientY - currY;
+              const next = Math.max(0, Math.min(1, startVal + dy / 110));
+              setVal(next);
+              syncVisual();
+            }
+          };
         };
 
-        const onMove = (clientY) => {
-          if (!dragging) return;
-          const dy = startY - clientY;
-          const next = Math.max(0, Math.min(1, startVal + dy / 110));
-          setVal(next);
-          syncVisual();
-        };
-
-        const onEnd = () => { dragging = false; };
-
-        knob.addEventListener('mousedown', (e) => { e.preventDefault(); onStart(e.clientY); });
-        window.addEventListener('mousemove', (e) => onMove(e.clientY));
-        window.addEventListener('mouseup', onEnd);
-
+        knob.addEventListener('mousedown', (e) => { e.preventDefault(); startDrag(e.clientY); });
         knob.addEventListener('touchstart', (e) => {
-          if (e.touches.length > 0) { e.preventDefault(); onStart(e.touches[0].clientY); }
+          if (e.touches.length > 0) { e.preventDefault(); startDrag(e.touches[0].clientY); }
         }, { passive: false });
-        window.addEventListener('touchmove', (e) => {
-          if (dragging && e.touches.length > 0) onMove(e.touches[0].clientY);
-        }, { passive: false });
-        window.addEventListener('touchend', onEnd);
 
         return unit;
       }
@@ -1342,6 +1383,10 @@
         knobPanelEl.appendChild(createKnobElement('CUTOFF', () => p.cutoff, v => p.cutoff = v));
         knobPanelEl.appendChild(createKnobElement('RESO',   () => p.reso,   v => p.reso = v));
         knobPanelEl.appendChild(createKnobElement('DRIVE',  () => p.drive,  v => p.drive = v));
+        knobPanelEl.appendChild(createKnobElement('VOL',    () => p.volume, v => {
+          p.volume = v;
+          sound.syncTrackVolumes();
+        }));
       }
 
       const btnPlay = document.getElementById('btn-play');
@@ -1806,9 +1851,6 @@
         requestAnimationFrame(animationLoop);
       }
 
-      // =========================================================================
-      // 8. INITIALIZATION
-      // =========================================================================
       setGenre('techno');
       resizeAllCanvases();
 
