@@ -224,8 +224,49 @@
       );
 
       // =========================================================================
-      // 2. MODULAR AUDIO ENGINE
+      // 2. MODULAR AUDIO ENGINE & CUSTOM SYNTH ENGINES
       // =========================================================================
+      // ★ 独自Web Audioシンセエンジンを関数として登録可能 (アプローチB)
+      const SYNTH_ENGINES = {
+        // 例：FMベル・金属音エンジン
+        fm_bell: (engine, tIdx, time, radius, semitones, p, def) => {
+          const ctx = engine.ctx;
+          const oct = def.octaveOffset || 12;
+          const freq = 440 * Math.pow(2, (semitones + oct - 9) / 12);
+          const stepDur = (60 / bpm) / 4;
+          const dur = Math.max(0.1, p.decay * stepDur * 5.0);
+
+          const carrier = ctx.createOscillator();
+          carrier.type = 'sine';
+          carrier.frequency.setValueAtTime(freq, time);
+
+          const modulator = ctx.createOscillator();
+          modulator.type = 'sine';
+          modulator.frequency.setValueAtTime(freq * (def.fmRatio || 3.5), time);
+
+          const modGain = ctx.createGain();
+          const modDepth = (def.fmDepth || 600) * (0.3 + p.cutoff * 1.5);
+          modGain.gain.setValueAtTime(modDepth, time);
+          modGain.gain.exponentialRampToValueAtTime(1, time + dur * 0.7);
+
+          modulator.connect(modGain);
+          modGain.connect(carrier.frequency);
+
+          const gain = ctx.createGain();
+          gain.gain.setValueAtTime(0.001, time);
+          gain.gain.linearRampToValueAtTime(0.6, time + 0.004);
+          gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+          carrier.connect(gain);
+          gain.connect(engine.masterGain);
+
+          carrier.start(time);
+          modulator.start(time);
+          carrier.stop(time + dur + 0.02);
+          modulator.stop(time + dur + 0.02);
+        }
+      };
+
       class ModularSoundEngine {
         constructor() {
           this.ctx = null;
@@ -369,9 +410,13 @@
             } else if (def.synthType === 'hihat') {
               this.triggerHiHatSynth(time, radius, p);
             } else if (def.synthType === 'acid') {
-              this.triggerAcid303(tIdx, time, radius, noteVal, p);
+              this.triggerAcid303(tIdx, time, radius, noteVal, p, def);
+            } else if (SYNTH_ENGINES[def.synthType]) {
+              // 登録された独自シンセエンジン
+              SYNTH_ENGINES[def.synthType](this, tIdx, time, radius, noteVal, p, def);
             } else {
-              this.triggerMelodicSynth(tIdx, time, radius, noteVal, def.synthType, p);
+              // 汎用メロディックシンセ（defで詳細カスタム可能）
+              this.triggerMelodicSynth(tIdx, time, radius, noteVal, def.synthType, p, def);
             }
           }
         }
@@ -461,46 +506,81 @@
           osc.stop(time + dur + 0.02);
         }
 
-        triggerMelodicSynth(tIdx, time, radius, semitones, waveType, p) {
-          const freq = 440 * Math.pow(2, (semitones - 9) / 12);
+        triggerMelodicSynth(tIdx, time, radius, semitones, waveType, p, def = {}) {
+          const oct = def.octaveOffset || 0;
+          const freq = 440 * Math.pow(2, (semitones + oct - 9) / 12);
           const stepDur = (60 / bpm) / 4;
-          const dur = Math.max(stepDur, p.decay * stepDur * 3.5);
+          const decayMult = def.decayScale !== undefined ? def.decayScale : 3.5;
+          const dur = Math.max(stepDur * 0.5, p.decay * stepDur * decayMult);
 
-          const osc = this.ctx.createOscillator();
-          osc.type = waveType;
-          osc.frequency.setValueAtTime(this.prevFreqs[tIdx], time);
-          osc.frequency.exponentialRampToValueAtTime(freq, time + Math.min(0.04, stepDur * 0.4));
+          // 1. メインオシレーター
+          const osc1 = this.ctx.createOscillator();
+          osc1.type = def.osc1Type || waveType || 'sawtooth';
+          const glideTime = def.glide !== undefined ? def.glide : Math.min(0.04, stepDur * 0.4);
+          osc1.frequency.setValueAtTime(this.prevFreqs[tIdx] || freq, time);
+          osc1.frequency.exponentialRampToValueAtTime(freq, time + glideTime);
           this.prevFreqs[tIdx] = freq;
 
-          const filter = this.ctx.createBiquadFilter();
-          filter.type = 'lowpass';
-          const baseCutoff = 160 + Math.pow(p.cutoff, 2) * 14000;
-          filter.frequency.setValueAtTime(baseCutoff + radius * 1500, time);
-          filter.frequency.exponentialRampToValueAtTime(Math.max(80, baseCutoff * 0.25), time + dur * 0.85);
-          filter.Q.value = 2 + p.reso * 18;
+          // オシレーターミックス
+          let soundSource = osc1;
+          let osc2 = null;
 
-          const gain = this.ctx.createGain();
-          gain.gain.setValueAtTime(0.001, time);
-          gain.gain.linearRampToValueAtTime(0.65, time + 0.006);
-          gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+          // 2. サブ/デュアルオシレーター (def.detune または def.osc2Type がある場合)
+          if (def.detune || def.osc2Type) {
+            osc2 = this.ctx.createOscillator();
+            osc2.type = def.osc2Type || osc1.type;
+            const det = def.detune || 0;
+            const osc2Freq = freq * Math.pow(2, (def.osc2Octave || 0));
+            osc2.frequency.setValueAtTime((this.prevFreqs[tIdx] || freq) * Math.pow(2, (def.osc2Octave || 0)), time);
+            osc2.frequency.exponentialRampToValueAtTime(osc2Freq, time + glideTime);
+            osc2.detune.setValueAtTime(det, time);
 
-          let node = osc;
-          if (p.drive > 0.05) {
-            const shaper = this.ctx.createWaveShaper();
-            shaper.curve = this.makeDistortionCurve(p.drive * 0.85);
-            osc.connect(filter);
-            filter.connect(shaper);
-            node = shaper;
-          } else {
-            osc.connect(filter);
-            node = filter;
+            const oscMix = this.ctx.createGain();
+            oscMix.gain.value = 0.5;
+            osc1.connect(oscMix);
+            osc2.connect(oscMix);
+            soundSource = oscMix;
           }
 
-          node.connect(gain);
+          // 3. フィルター (filterType, cutoffEnv, reso)
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = def.filterType || 'lowpass';
+          const baseCutoff = def.baseCutoff !== undefined
+            ? def.baseCutoff + p.cutoff * (def.cutoffRange || 5000)
+            : 160 + Math.pow(p.cutoff, 2) * 14000;
+          
+          filter.frequency.setValueAtTime(baseCutoff + radius * (def.radiusCutoff || 1500), time);
+          filter.frequency.exponentialRampToValueAtTime(Math.max(60, baseCutoff * (def.filterEnvDrop || 0.25)), time + dur * 0.85);
+          filter.Q.value = (def.baseQ || 2) + p.reso * (def.resoRange || 18);
+
+          // 4. アンプエンベロープ
+          const gain = this.ctx.createGain();
+          gain.gain.setValueAtTime(0.001, time);
+          const attack = def.attack !== undefined ? def.attack : 0.006;
+          gain.gain.linearRampToValueAtTime(def.volume || 0.65, time + attack);
+          gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+          // 5. ディストーション / オーバードライブ
+          const driveAmount = p.drive + (def.driveBase || 0);
+          soundSource.connect(filter);
+
+          let finalNode = filter;
+          if (driveAmount > 0.05) {
+            const shaper = this.ctx.createWaveShaper();
+            shaper.curve = this.makeDistortionCurve(Math.min(0.95, driveAmount * 0.85));
+            filter.connect(shaper);
+            finalNode = shaper;
+          }
+
+          finalNode.connect(gain);
           gain.connect(this.masterGain);
 
-          osc.start(time);
-          osc.stop(time + dur + 0.03);
+          osc1.start(time);
+          osc1.stop(time + dur + 0.03);
+          if (osc2) {
+            osc2.start(time);
+            osc2.stop(time + dur + 0.03);
+          }
         }
 
         stopAllVoices() {
