@@ -472,7 +472,7 @@
 
         triggerAcid303(tIdx, time, radius, freq, p) {
           const stepDur = (60 / bpm) / 4;
-          const decayMult = (p.decay !== undefined) ? (0.5 + p.decay * 1.0) : 1.0;
+          const decayMult = (p.decay !== undefined) ? (0.8 + p.decay * 3.2) : 2.0;
           const dur = stepDur * decayMult;
 
           const osc = this.ctx.createOscillator();
@@ -486,7 +486,7 @@
           filter.type = 'lowpass';
           const baseCutoff = 160 + p.cutoff * 3800;
           filter.frequency.setValueAtTime(Math.min(12000, baseCutoff + radius * 1600), time);
-          filter.frequency.exponentialRampToValueAtTime(Math.max(110, baseCutoff * 0.35), time + stepDur * 0.9);
+          filter.frequency.exponentialRampToValueAtTime(Math.max(110, baseCutoff * 0.35), time + dur * 0.85);
           filter.Q.value = 2 + p.reso * 18;
 
           const shaper = this.ctx.createWaveShaper();
