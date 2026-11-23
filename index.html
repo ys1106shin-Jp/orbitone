@@ -293,7 +293,7 @@
           fmMod.frequency.setValueAtTime(baseFreq * fmRatio, time);
 
           const fmDepth = ctx.createGain();
-          const modAmount = baseFreq * (1.2 + p.drive * 3.5 + p.reso * 1.5);
+          const modAmount = baseFreq * (6.0 + p.drive * 3.5 + p.reso * 1.5);
           fmDepth.gain.setValueAtTime(modAmount, time);
           fmDepth.gain.exponentialRampToValueAtTime(1, time + dur * 0.6);
 
