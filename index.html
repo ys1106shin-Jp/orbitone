@@ -260,7 +260,7 @@
       // 2. MODULAR AUDIO ENGINE & CUSTOM SYNTH ENGINES
       // =========================================================================
       const SYNTH_ENGINES = {
-        metal: (engine, tIdx, time, radius, noteVal, p, _def, dest) => {
+      　　metal: (engine, tIdx, time, radius, noteVal, p, _def, dest) => {
           const ctx = engine.ctx;
           const baseFreq = 440 * Math.pow(2, (noteVal + 7 - 9) / 12) * (0.8 + radius * 0.6);
           const dur = 0.06 + (1 - p.cutoff * 0.4) * 0.22;
@@ -286,11 +286,37 @@
           }
           outNode.connect(dest);
 
+          // --- FMモジュレータ（金属的な非整数比でオシレータ群の周波数を揺らす） ---
+          const fmMod = ctx.createOscillator();
+          fmMod.type = 'sine';
+          const fmRatio = 2.756 + radius * 1.1; // radiusで金属の倍音バランスが変化
+          fmMod.frequency.setValueAtTime(baseFreq * fmRatio, time);
+
+          const fmDepth = ctx.createGain();
+          const modAmount = baseFreq * (1.2 + p.drive * 3.5 + p.reso * 1.5);
+          fmDepth.gain.setValueAtTime(modAmount, time);
+          fmDepth.gain.exponentialRampToValueAtTime(1, time + dur * 0.6);
+
+          fmMod.connect(fmDepth);
+          fmMod.start(time);
+          fmMod.stop(time + dur + 0.02);
+          engine.trackVoice(tIdx, fmMod, fmDepth);
+
           ratios.forEach((r, idx) => {
             const osc = ctx.createOscillator();
             osc.type = idx % 2 === 0 ? 'square' : 'triangle';
-            osc.frequency.setValueAtTime(baseFreq * r, time);
-            osc.frequency.exponentialRampToValueAtTime(Math.max(60, baseFreq * r * 0.7), time + dur);
+            const startFreq = baseFreq * r;
+            const endFreq = Math.max(60, startFreq * 0.7);
+
+            osc.frequency.setValueAtTime(startFreq, time);
+            osc.frequency.exponentialRampToValueAtTime(endFreq, time + dur);
+
+            // 各オシレータの周波数（frequency）にFMを接続（比率r分だけ深さを調整）
+            const perOscGain = ctx.createGain();
+            perOscGain.gain.setValueAtTime(r * 0.5, time);
+            fmDepth.connect(perOscGain);
+            perOscGain.connect(osc.frequency);
+
             osc.connect(mix);
             osc.start(time);
             osc.stop(time + dur + 0.02);
