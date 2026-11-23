@@ -1874,11 +1874,8 @@
 
       function animationLoop() {
         updateSpinPhases();
-        if (isPlaying || recState !== 'off' || needsDiscRedraw) {
-          renderMainDisc();
-          renderMiniDiscs();
-          needsDiscRedraw = false;
-        }
+        renderMainDisc();
+        renderMiniDiscs();
         requestAnimationFrame(animationLoop);
       }
 
