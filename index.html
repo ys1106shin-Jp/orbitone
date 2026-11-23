@@ -1844,12 +1844,18 @@
         }
       }
 
+      function      let needsDiscRedraw = true;
+
       function animationLoop() {
         updateSpinPhases();
-        renderMainDisc();
-        renderMiniDiscs();
+        if (isPlaying || recState !== 'off' || needsDiscRedraw) {
+          renderMainDisc();
+          renderMiniDiscs();
+          needsDiscRedraw = false;
+        }
         requestAnimationFrame(animationLoop);
       }
+
 
       setGenre('techno');
       resizeAllCanvases();
